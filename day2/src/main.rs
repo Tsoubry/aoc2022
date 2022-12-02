@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 #[derive(PartialEq, Clone)]
 enum RPS {
     Rock,
@@ -12,6 +14,24 @@ enum Strategy {
     Win,
 }
 
+impl PartialOrd for RPS {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self == other {
+            Some(Ordering::Equal)
+        } else if self < other {
+            Some(Ordering::Less)
+        } else {
+            Some(Ordering::Greater)
+        }
+    }
+
+    fn lt(&self, other: &Self) -> bool {
+        (self == &RPS::Rock && other == &RPS::Paper)
+            || (self == &RPS::Paper && other == &RPS::Scissors)
+            || (self == &RPS::Scissors && other == &RPS::Rock)
+    }
+}
+
 impl RPS {
     fn parse(text: &str) -> (RPS, RPS) {
         let mut chars = text.chars();
@@ -19,13 +39,13 @@ impl RPS {
             'A' => Self::Rock,
             'B' => Self::Paper,
             'C' => Self::Scissors,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
         let you = match chars.last().unwrap() {
             'X' => Self::Rock,
             'Y' => Self::Paper,
             'Z' => Self::Scissors,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
         (opponent, you)
     }
@@ -40,22 +60,17 @@ impl RPS {
 
     fn total_score((opponent, you): (RPS, RPS)) -> (i64, i64) {
         let win_score = if opponent == you {
-            (3 , 3)
-        } else if opponent == RPS::Rock {
-            if you == RPS::Paper {
-                (0, 6)
-            } else { (6, 0) }
-        } else if opponent == RPS::Paper {
-            if you == RPS::Scissors {
-                (0, 6)
-            } else { (6, 0) }
+            (3, 3)
+        } else if opponent > you {
+            (6, 0)
         } else {
-            if you == RPS::Rock {
-                (0, 6)
-            } else { (6, 0) }
+            (0, 6)
         };
 
-        (win_score.0 + opponent.shape_score(), win_score.1 + you.shape_score())
+        (
+            win_score.0 + opponent.shape_score(),
+            win_score.1 + you.shape_score(),
+        )
     }
 
     fn parse2(text: &str) -> (RPS, Strategy) {
@@ -64,30 +79,33 @@ impl RPS {
             'A' => Self::Rock,
             'B' => Self::Paper,
             'C' => Self::Scissors,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
         let you = match chars.last().unwrap() {
             'X' => Strategy::Lose,
             'Y' => Strategy::Draw,
             'Z' => Strategy::Win,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
         (opponent, you)
     }
 
     fn total_score2((opponent, your_strategy): (RPS, Strategy)) -> (i64, i64) {
-
         let win_rps = if opponent == RPS::Rock {
             RPS::Paper
         } else if opponent == RPS::Paper {
             RPS::Scissors
-        } else { RPS::Rock };
+        } else {
+            RPS::Rock
+        };
 
         let lose_rps = if opponent == RPS::Rock {
             RPS::Scissors
         } else if opponent == RPS::Paper {
             RPS::Rock
-        } else { RPS::Paper };
+        } else {
+            RPS::Paper
+        };
 
         match your_strategy {
             Strategy::Draw => RPS::total_score((opponent.clone(), opponent)),
@@ -106,19 +124,17 @@ fn parse_data2(data: &str) -> Vec<(RPS, Strategy)> {
 }
 
 fn answer1(data: Vec<(RPS, RPS)>) -> i64 {
-    data
-        .into_iter()
+    data.into_iter()
         .map(|game| RPS::total_score(game))
         .map(|result| result.1)
         .sum()
 }
 
 fn answer2(data: Vec<(RPS, Strategy)>) -> i64 {
-    data
-    .into_iter()
-    .map(|game| RPS::total_score2(game))
-    .map(|result| result.1)
-    .sum()
+    data.into_iter()
+        .map(|game| RPS::total_score2(game))
+        .map(|result| result.1)
+        .sum()
 }
 
 fn main() {
