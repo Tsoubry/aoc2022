@@ -9,6 +9,6 @@ echo "🦀 DAY $1"
 AOCYEAR=2022
 URL=https://adventofcode.com/$AOCYEAR/day/$1
 
-cargo new --vcs none --bin --edition 2021 --name day$1 day$1
+cargo generate --path template --name day$1
 
 curl -f $URL/input -H "cookie: $(cat cookie)" > day$1/input.txt 2> /dev/null
