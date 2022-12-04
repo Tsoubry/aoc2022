@@ -30,9 +30,15 @@ mod tests {
     use super::*;
 
     fn test_data() -> &'static str {
-        todo!();
+
         r#"
 "#
+    }
+
+    #[test]
+    fn test_parsing() {
+        let input_data = import_data(test_data());
+        println!("{:?}", input_data);
     }
 
     #[test]
