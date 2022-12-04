@@ -1,5 +1,9 @@
 fn import_data(data: &str) -> Vec<_> {
-    data.lines().map(|line| line.chars().collect()).collect()
+    data.lines().map(|line| parse(line)).collect()
+}
+
+fn parse(line: &str) -> () {
+    todo!()
 }
 
 fn answer_part1(data: Vec<_>) -> i64 {
@@ -22,21 +26,21 @@ mod tests {
 
     use super::*;
 
-    fn test_data() -> &str {
+    fn test_data() -> &'static str {
         r#"
-"#;
+"#
     }
 
     #[test]
     fn test_answer1() {
         let input_data = import_data(test_data());
-        assert_eq!(, answer1(input_data, priorities));
+        assert_eq!(, answer_part1(input_data));
     }
 
     #[test]
     fn test_answer2() {
         let input_data = import_data(test_data());
-        assert_eq!(, answer2(input_data, priorities));
+        assert_eq!(, answer_part2(input_data));
     }
 
     #[test]
