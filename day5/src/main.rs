@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 
 type Parsed = (usize, usize, usize);
 
@@ -38,7 +37,7 @@ fn import_data(data: &str) -> (HashMap<usize, Stack>, Vec<Parsed>) {
 
     let crane_orders: Vec<Parsed> = lines.into_iter().map(|line| parse(line)).collect();
 
-    (stacks, crane_orders) // todo
+    (stacks, crane_orders)
 }
 
 fn parse(line: &str) -> Parsed {
@@ -72,9 +71,25 @@ fn answer_part1(stacks: &mut HashMap<usize, Stack>, operations: Vec<Parsed>) -> 
     String::from_iter(solution)
 }
 
-// fn answer_part2(data: Vec<Parsed>) -> i64 {
-//     todo!();
-// }
+fn answer_part2(stacks: &mut HashMap<usize, Stack>, operations: Vec<Parsed>) -> String {
+    for (crates_to_move, from, to) in operations {
+        let stack = stacks.get_mut(&from).unwrap();
+        let start_at = stack.len() - crates_to_move;
+        let crates_to_stack: Vec<char> = stack.drain(start_at..).collect();
+
+        for item in crates_to_stack {
+            stacks.entry(to).and_modify(|deque| deque.push_back(item));
+        }
+    }
+
+    let mut solution: Vec<char> = vec![];
+
+    for n in 0..stacks.len() {
+        solution.push(*stacks.get(&(n + 1)).unwrap().back().unwrap())
+    }
+
+    String::from_iter(solution)
+}
 
 fn main() {
     let (mut stacks, operations) = import_data(include_str!("../input.txt"));
@@ -83,7 +98,10 @@ fn main() {
         "Answer of part 1 is: {}",
         answer_part1(&mut stacks.clone(), operations.clone())
     );
-    // println!("Answer of part 2 is: {}", answer_part2(input_data));
+    println!(
+        "Answer of part 2 is: {}",
+        answer_part2(&mut stacks, operations)
+    );
 }
 
 #[cfg(test)]
@@ -111,11 +129,12 @@ move 1 from 1 to 2
         assert_eq!("CMZ".to_string(), answer_part1(&mut stacks, operations));
     }
 
-    // #[test]
-    // fn test_answer2() {
-    //     let input_data = import_data(test_data());
-    //     assert_eq!(, answer_part2(input_data));
-    // }
+    #[test]
+    fn test_answer2() {
+        let (mut stacks, operations) = import_data(test_data());
+
+        assert_eq!("MCD".to_string(), answer_part2(&mut stacks, operations));
+    }
 
     #[test]
     fn playground() {}
