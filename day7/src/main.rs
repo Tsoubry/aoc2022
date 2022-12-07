@@ -3,10 +3,15 @@ use regex::Regex;
 #[macro_use]
 extern crate derive_new;
 
-#[derive(new)]
+fn import_data(data: &str) -> Vec<String> {
+    data.lines().map(|x| x.into()).collect()
+}
+
+#[derive(new, Clone, Debug)]
 struct Dir {
     pub name: String,
     pub filesize: u64,
+    pub upper_directory: Option<String>,
     pub dirs: Vec<Dir>,
 }
 
@@ -17,83 +22,139 @@ enum Operation {
     ReturnSize(u64),
 }
 
-fn import_data(data: &str) -> Vec<String> {
-    data.lines().map(|x| x.into()).collect()
+#[derive(Clone, Debug)]
+struct Fs {
+    pub dirs: Vec<Dir>,
+    pub cursor: String,
 }
 
 fn parse_command(line: &str) -> Operation {
-    let re = Regex::new(r"^\$?\s?(ls|cd|dir)\s?(.+)").unwrap();
+    let re = Regex::new(r"^\$?\s?(ls|cd|dir)\s?(.*)").unwrap();
 
-    if let Some(caps) = re.captures(&line) {
-        let command: Option<String> = caps.get(1).and_then(|x| Some(x.as_str().to_owned()));
-
-        if let Some(cmd) = command {
-            match cmd.as_str() {
+    match re.captures(&line) {
+        Some(caps) => {
+            let command = caps
+                .get(1)
+                .and_then(|x| Some(x.as_str().to_owned()))
+                .unwrap();
+            match command.as_str() {
                 "ls" => return Operation::Ls,
                 "cd" => return Operation::Cd(caps.get(2).unwrap().as_str().to_owned()),
                 "dir" => return Operation::ReturnDir(caps.get(2).unwrap().as_str().to_owned()),
                 _ => unreachable!(),
             }
-        };
+        }
+        None => {
+            // parse file:
+            let re2 = Regex::new(r"^(\d+)\s(.+)").unwrap();
+
+            let caps2 = re2.captures(&line).unwrap();
+
+            Operation::ReturnSize(caps2.get(1).unwrap().as_str().parse().unwrap())
+        }
     }
-
-    // parse file:
-    let re2 = Regex::new(r"^(\d+)\s(.+)").unwrap();
-
-    let caps2 = re2.captures(&line).unwrap();
-
-    return Operation::ReturnSize(caps2.get(1).unwrap().as_str().parse().unwrap());
 }
 
-fn calculate_dir_sizes(dir: Dir, size: u64) -> u64 {
-    for subdir in dir.dirs {
-        return calculate_dir_sizes(subdir, dir.filesize + size);
+impl Default for Fs {
+    fn default() -> Self {
+        let path = "/".to_string();
+        Self {
+            dirs: vec![Dir::new(path.clone(), 0, None, vec![])],
+            cursor: path,
+        }
     }
-    size
 }
 
-fn answer_part1(data: Vec<String>) -> u64 {
-    let mut directory = Dir {
-        name: "/".to_string(),
-        filesize: 0,
-        dirs: vec![],
-    };
-
-    let mut current_dir: &mut Dir = &mut directory;
-
-    for line in data {
-        match parse_command(&line) {
-            Operation::Ls => (),
-            Operation::ReturnDir(dir_name) => {
-                current_dir.dirs.push(Dir::new(dir_name, 0, vec![]));
-            }
-            Operation::ReturnSize(size) => {
-                current_dir.filesize += size;
-            }
-            Operation::Cd(dir_name) => {
-
-                let cd = match dir_name.as_str() {
-                    ".." => {
-                        &mut directory
-                    },
-                    "/" => {
-                        &mut directory
-                    },
-                    x_directory => {
-                        current_dir
+impl Fs {
+    fn run_commands(&mut self, data: Vec<String>) {
+        for line in data {
+            match parse_command(&line) {
+                Operation::Ls => (),
+                Operation::ReturnDir(dir_name) => {
+                    let new_directory = Dir::new(dir_name, 0, Some(self.cursor.clone()), vec![]);
+                    let current_directory = self
+                    .dirs
+                    .iter_mut()
+                    .find(|d| d.name == self.cursor)
+                    .unwrap();
+                    current_directory.dirs.push(new_directory);
+                }
+                Operation::ReturnSize(size) => {
+                    let current_dir = self
                         .dirs
                         .iter_mut()
-                        .find(|d| d.name == dir_name)
-                        .unwrap()
-                    }
-                };
+                        .find(|d| d.name == self.cursor)
+                        .unwrap();
+                    current_dir.filesize += size;
+                }
+                Operation::Cd(dir_name) => {
+                    match dir_name.as_str() {
+                        ".." => {
+                            let upper_directory = self
+                                .dirs
+                                .iter()
+                                .find(|d| d.name == self.cursor)
+                                .unwrap()
+                                .upper_directory
+                                .clone();
+                            self.cursor = upper_directory.unwrap();
+                        }
+                        "/" => {
+                            self.cursor = "/".to_string();
+                        }
+                        x_directory => {
 
-                current_dir = cd;
+                            println!("x dir: {:?}", &self.dirs);
+                            let cd_directory = self
+                                .dirs
+                                .iter_mut()
+                                .find(|d| d.name == x_directory)
+                                .unwrap();
+                            self.cursor = cd_directory.name.clone();
+                        }
+                    };
+                }
             }
         }
     }
 
-    calculate_dir_sizes(directory, 0) // check if this is correct
+    fn calculate_result(&self) -> u64 {
+
+        
+        calculate_dir_sizes(&self.dirs, 0)
+
+    }
+}
+
+fn calculate_dir_sizes(sub_dirs: &Vec<Dir>, size: u64) -> u64 {
+
+    for dir in sub_dirs {
+        let recursive_dir_sizes =  calculate_dir_sizes(&dir.dirs, dir.filesize + size);
+        if recursive_dir_sizes <= 100000 {
+            println!("recursive: {}", recursive_dir_sizes);
+            return recursive_dir_sizes
+        } else {
+            return 0
+        }
+    }
+
+    if size <= 100000 {
+        println!("size: {}", size);
+        size
+    } else { 0 }
+
+}
+
+fn answer_part1(data: Vec<String>) -> u64 {
+    let mut directory = Fs::default();
+
+    println!("{:?}", &directory.dirs);
+
+    directory.run_commands(data);
+
+    println!("{:?}", &directory.dirs);
+
+    directory.calculate_result()
 }
 
 // fn answer_part2(data: Vec<Parsed>) -> i64 {
