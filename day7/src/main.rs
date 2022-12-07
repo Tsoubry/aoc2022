@@ -61,8 +61,6 @@ fn answer_part1(data: Vec<String>) -> u64 {
 
     let mut current_dir: &mut Dir = &mut directory;
 
-    let mut last_operation = Operation::Cd("/".to_string());
-
     for line in data {
         match parse_command(&line) {
             Operation::Ls => (),
@@ -73,11 +71,22 @@ fn answer_part1(data: Vec<String>) -> u64 {
                 current_dir.filesize += size;
             }
             Operation::Cd(dir_name) => {
-                let cd = current_dir
-                    .dirs
-                    .iter_mut()
-                    .find(|d| d.name == dir_name)
-                    .unwrap();
+
+                let cd = match dir_name.as_str() {
+                    ".." => {
+                        &mut directory
+                    },
+                    "/" => {
+                        &mut directory
+                    },
+                    x_directory => {
+                        current_dir
+                        .dirs
+                        .iter_mut()
+                        .find(|d| d.name == dir_name)
+                        .unwrap()
+                    }
+                };
 
                 current_dir = cd;
             }
