@@ -42,19 +42,14 @@ fn parse_command(line: &str) -> Operation {
 
     let caps2 = re2.captures(&line).unwrap();
 
-    return Operation::ReturnSize(caps2.get(1).unwrap().as_str().parse().unwrap())
-
-
+    return Operation::ReturnSize(caps2.get(1).unwrap().as_str().parse().unwrap());
 }
 
-fn parse_size(line: &str) -> Option<u64> {
-    let re = Regex::new(r"^(\d+)\s(.+)").unwrap();
-
-    if let Some(caps) = re.captures(&line) {
-        return caps.get(1).and_then(|x| x.as_str().parse().ok());
+fn calculate_dir_sizes(dir: Dir, size: u64) -> u64 {
+    for subdir in dir.dirs {
+        return calculate_dir_sizes(subdir, dir.filesize + size);
     }
-
-    None
+    size
 }
 
 fn answer_part1(data: Vec<String>) -> u64 {
@@ -69,32 +64,27 @@ fn answer_part1(data: Vec<String>) -> u64 {
     let mut last_operation = Operation::Cd("/".to_string());
 
     for line in data {
-        if true {
-            // cd
-            let cd = current_dir
-                .dirs
-                .iter_mut()
-                .find(|d| d.name == "abc".to_string())
-                .unwrap();
-            current_dir = cd;
+        match parse_command(&line) {
+            Operation::Ls => (),
+            Operation::ReturnDir(dir_name) => {
+                current_dir.dirs.push(Dir::new(dir_name, 0, vec![]));
+            }
+            Operation::ReturnSize(size) => {
+                current_dir.filesize += size;
+            }
+            Operation::Cd(dir_name) => {
+                let cd = current_dir
+                    .dirs
+                    .iter_mut()
+                    .find(|d| d.name == dir_name)
+                    .unwrap();
+
+                current_dir = cd;
+            }
         }
-
-        // if let Some(dir) = parse_command(&line) {
-        //     directory.
-
-        // };
-
-        if let Some(size) = parse_size(&line) {
-            current_dir.filesize += size;
-        };
     }
 
-    if current_dir_size <= 100000 {
-        dir_sizes_small.push(current_dir_size);
-    }
-    current_dir_size = 0;
-
-    dir_sizes_small.iter().sum()
+    calculate_dir_sizes(directory, 0) // check if this is correct
 }
 
 // fn answer_part2(data: Vec<Parsed>) -> i64 {
