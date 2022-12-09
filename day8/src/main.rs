@@ -1,7 +1,7 @@
 const RADIX: u32 = 10;
 const MATRIX_SIZE: usize = 99;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct CoordinateError;
 
 fn import_data(data: &str) -> Vec<Vec<u8>> {
@@ -43,47 +43,51 @@ impl<const N: usize> Grid<N> {
             .copied()
     }
 
-    fn find_max_x_1(&self, x: usize, y: usize) -> Result<u8, CoordinateError> {
+    fn find_up(&self, x: usize, y: usize) -> Result<u8, CoordinateError> {
 
-        self.grid[x][0..y].iter().max().ok_or(CoordinateError).copied()
+        self.grid
+            .iter()
+            .map(|s| s.iter().nth(x).unwrap())
+            .take(y)
+            .max()
+            .ok_or(CoordinateError)
+            .copied()
     }
 
-    fn find_max_x_2(&self, x: usize, y: usize) -> u8 {
-
-        *self.grid[x][y..].iter().max().unwrap()
+    fn find_down(&self, x: usize, y: usize) -> Result<u8, CoordinateError> {
+        self.grid
+            .iter()
+            .map(|s| s.iter().nth(x).unwrap())
+            .skip(y + 1)
+            .max()
+            .ok_or(CoordinateError)
+            .copied()
     }
 
-    fn find_max_y_1(&self, x: usize, y: usize) -> u8 {
-        *self.grid[0..x][y].iter().max().unwrap()
+    fn find_right(&self, x: usize, y: usize) -> Result<u8, CoordinateError> {
+        self.grid
+            .get(y)
+            .ok_or(CoordinateError)?
+            .get(x+1..)
+            .ok_or(CoordinateError)?
+            .iter()
+            .max()
+            .ok_or(CoordinateError)
+            .copied()
     }
 
-    fn find_max_y_2(&self, x: usize, y: usize) -> u8 {
-        *self.grid[x..][y].iter().max().unwrap()
+    fn find_left(&self, x: usize, y: usize) -> Result<u8, CoordinateError> {
+        self.grid
+            .get(y)
+            .ok_or(CoordinateError)?
+            .get(..x)
+            .ok_or(CoordinateError)?
+            .iter()
+            .max()
+            .ok_or(CoordinateError)
+            .copied()
     }
 
-    fn decide_visible(&self, x: Option<usize>, y: Option<usize>, center_value: u8) -> bool {
-        if x.is_none() || y.is_none() {
-            return true;
-        };
-
-        let xu = x.unwrap();
-        let yu = y.unwrap();
-
-        match self.get_coordinate_value(xu, yu) {
-            Ok(_) => {
-                if self.find_max_x_1(xu, yu) >= center_value
-                    && self.find_max_x_2(xu, yu) >= center_value
-                    && self.find_max_y_1(xu, yu) >= center_value
-                    && self.find_max_y_2(xu, yu) >= center_value
-                {
-                    false
-                } else {
-                    true
-                }
-            }
-            Err(_) => true,
-        }
-    }
 }
 
 impl<const N: usize> Default for Grid<N> {
@@ -94,29 +98,31 @@ impl<const N: usize> Default for Grid<N> {
 
 fn answer_part1<const N: usize>(grid: Grid<N>) -> u32 {
     let mut total_visible = 0;
-    let mut visible: Vec<u8> = vec![];
 
     for col_number in 0..N {
         for row_number in 0..N {
             let current_value = grid.get_coordinate_value(row_number, col_number).unwrap();
 
-            grid.decide_visible(row_number.checked_sub(1), Some(col_number), current_value);
+            let up = grid.find_up(row_number, col_number).ok();
+            let down = grid.find_down(row_number, col_number).ok();
+            let left = grid.find_left(row_number, col_number).ok();
+            let right = grid.find_right(row_number, col_number).ok();
 
-            let up =
-                grid.decide_visible(row_number.checked_sub(1), Some(col_number), current_value);
-            let down = grid.decide_visible(Some(row_number + 1), Some(col_number), current_value);
-            let left =
-                grid.decide_visible(Some(row_number), col_number.checked_sub(1), current_value);
-            let right = grid.decide_visible(Some(row_number), Some(col_number + 1), current_value);
-
-            if up || down || left || right {
-                total_visible += 1;
-                visible.push(current_value);
-            }
+            match (up, down, left, right) {
+                (Some(u), Some(d), Some(l), Some(r)) => {
+                    if u >= current_value
+                        && d >= current_value
+                        && l >= current_value
+                        && r >= current_value
+                    {  } else {
+                        total_visible += 1
+                        
+                    }
+                }
+                _ => total_visible += 1,
+            };
         }
     }
-
-    println!("{:?}", visible);
 
     total_visible
 }
@@ -130,6 +136,8 @@ fn main() {
 
     let mut grid = Grid::<MATRIX_SIZE>::default();
     grid.from_data(input_data);
+
+    grid.print();
 
     println!(
         "Answer of part 1 is: {}",
@@ -160,6 +168,19 @@ mod tests {
         grid.print();
 
         assert_eq!(7, grid.get_coordinate_value(3, 0).unwrap());
+
+        assert_eq!(7, grid.find_up(3, 3).unwrap());
+        assert_eq!(9, grid.find_down(3, 3).unwrap());
+        assert_eq!(5, grid.find_left(3, 3).unwrap());
+        assert_eq!(9, grid.find_right(3, 3).unwrap());
+
+        assert_eq!(1, grid.get_coordinate_value(3, 1).unwrap());
+        assert_eq!(7, grid.find_up(3, 1).unwrap());
+        assert_eq!(9, grid.find_down(3, 1).unwrap());
+        assert_eq!(5, grid.find_left(3, 1).unwrap());
+        assert_eq!(2, grid.find_right(3, 1).unwrap());
+
+        assert_eq!(Err(CoordinateError), grid.find_down(4, 4));
     }
 
     #[test]
@@ -177,7 +198,4 @@ mod tests {
     //     let input_data = import_data(TEST_DATA);
     //     assert_eq!(, answer_part2(input_data));
     // }
-
-    #[test]
-    fn playground() {}
 }
