@@ -44,7 +44,6 @@ impl<const N: usize> Grid<N> {
     }
 
     fn find_up(&self, x: usize, y: usize) -> Result<u8, CoordinateError> {
-
         self.grid
             .iter()
             .map(|s| s.iter().nth(x).unwrap())
@@ -68,7 +67,7 @@ impl<const N: usize> Grid<N> {
         self.grid
             .get(y)
             .ok_or(CoordinateError)?
-            .get(x+1..)
+            .get(x + 1..)
             .ok_or(CoordinateError)?
             .iter()
             .max()
@@ -87,7 +86,6 @@ impl<const N: usize> Grid<N> {
             .ok_or(CoordinateError)
             .copied()
     }
-
 }
 
 impl<const N: usize> Default for Grid<N> {
@@ -114,9 +112,9 @@ fn answer_part1<const N: usize>(grid: Grid<N>) -> u32 {
                         && d >= current_value
                         && l >= current_value
                         && r >= current_value
-                    {  } else {
+                    {
+                    } else {
                         total_visible += 1
-                        
                     }
                 }
                 _ => total_visible += 1,
