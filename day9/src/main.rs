@@ -65,15 +65,83 @@ fn answer_part1(data: Vec<Instruction>) -> usize {
         .count()
 }
 
-// fn answer_part2(data: Vec<Instruction>) -> i64 {
+fn answer_part2(data: Vec<Instruction>) -> usize {
+    let mut positions_visited: HashMap<Coordinate, u32> = HashMap::new();
 
-// }
+    let empty_coordinate = Coordinate::new(0, 0);
+
+    let mut knots = vec![empty_coordinate.clone()]
+        .into_iter()
+        .cycle()
+        .take(10)
+        .collect::<Vec<_>>();
+
+    let last_knot = knots.get(9).unwrap();
+    positions_visited.insert(*last_knot, 1);
+
+    // just initialization
+    let mut head_position = empty_coordinate.clone();
+    let mut next_knot = empty_coordinate.clone();
+
+    for (direction, distance) in data {
+        for _ in 0..distance {
+
+            head_position = head_position.walk(&direction);
+            knots[0] = head_position;
+
+            for index in 1..10usize {
+                next_knot = *knots.get(index).unwrap();
+
+                
+        
+                if head_position.check_coordinate_around(&next_knot) {
+                    // don't need to do anything
+                } else {
+                    if head_position.get_x() != next_knot.get_x()
+                        && head_position.get_y() != next_knot.get_y()
+                    {
+                        next_knot = next_knot.walk_towards(&direction);
+                    } else {
+                        next_knot = next_knot.walk(&direction);
+                    }
+
+                    if index == 9 {
+                        println!("{:?}, {}", &direction, &distance);
+                        positions_visited
+                        .entry(next_knot)
+                        .and_modify(|amount| *amount += 1)
+                        .or_insert(1);
+                    }
+                }
+
+                println!("Index: {}, Head: {:?}, next: {:?}", index, &head_position, &next_knot);
+
+                // end: update positions in vec and variables
+
+                knots[index] = next_knot;
+                head_position = next_knot;
+                
+            }
+
+            // loop finishes, reset head_position
+            head_position = *knots.get(0).unwrap();
+        }
+    }
+
+
+    println!("{:?}", &positions_visited);
+
+    positions_visited
+        .into_iter()
+        .filter(|(_, value)| value >= &1)
+        .count()
+}
 
 fn main() {
     let input_data = import_data(include_str!("../input.txt"));
 
     println!("Answer of part 1 is: {}", answer_part1(input_data.clone()));
-    // println!("Answer of part 2 is: {}", answer_part2(input_data));
+    println!("Answer of part 2 is: {}", answer_part2(input_data));
 }
 
 #[cfg(test)]
@@ -91,10 +159,20 @@ L 5
 R 2
 "#;
 
+    const TEST_DATA2: &str = r#"R 5
+U 8
+L 8
+D 3
+R 17
+D 10
+L 25
+U 20
+"#;
+
     #[test]
     fn test_parsing() {
-        let input_data = import_data(TEST_DATA);
-        println!("{:?}", input_data);
+        let _input_data = import_data(TEST_DATA);
+        // println!("{:?}", _input_data);
     }
 
     #[test]
@@ -103,11 +181,15 @@ R 2
         assert_eq!(13, answer_part1(input_data));
     }
 
-    // #[test]
-    // fn test_answer2() {
-    //     let input_data = import_data(TEST_DATA);
-    //     assert_eq!(, answer_part2(input_data));
-    // }
+    #[test]
+    fn test_answer2() {
+
+        let input_data = import_data(TEST_DATA);
+        assert_eq!(1, answer_part2(input_data));
+
+        let input_data2 = import_data(TEST_DATA2);
+        assert_eq!(36, answer_part2(input_data2));
+    }
 
     #[test]
     fn playground() {}

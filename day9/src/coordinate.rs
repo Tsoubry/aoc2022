@@ -25,6 +25,15 @@ impl Coordinate {
         }
     }
 
+    pub fn walk_towards(&self, direction: &Direction) -> Self {
+        match direction {
+            Direction::D => Self::new(self.0 + 1, self.1 - 1),
+            Direction::U => Self::new(self.0 + 1, self.1 + 1),
+            Direction::L => Self::new(self.0 - 1 as isize, self.1 + 1), // right
+            Direction::R => Self::new(self.0 + 1 as isize, self.1 - 1),
+        }
+    }
+
     pub fn check_coordinate_around(&self, other: &Self) -> bool {
         [self.0 - 1, self.0, self.0 + 1].contains(&other.0)
             && [self.1 - 1, self.1, self.1 + 1].contains(&other.1)
