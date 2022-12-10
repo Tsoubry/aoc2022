@@ -85,51 +85,39 @@ fn answer_part2(data: Vec<Instruction>) -> usize {
 
     for (direction, distance) in data {
         for _ in 0..distance {
-
             head_position = head_position.walk(&direction);
             knots[0] = head_position;
 
             for index in 1..10usize {
                 next_knot = *knots.get(index).unwrap();
 
-                
-        
                 if head_position.check_coordinate_around(&next_knot) {
                     // don't need to do anything
                 } else {
-                    if head_position.get_x() != next_knot.get_x()
-                        && head_position.get_y() != next_knot.get_y()
-                    {
-                        next_knot = next_knot.walk_towards(&direction);
-                    } else {
-                        next_knot = next_knot.walk(&direction);
-                    }
+                    next_knot = next_knot.walk_towards(&head_position);
 
                     if index == 9 {
-                        println!("{:?}, {}", &direction, &distance);
                         positions_visited
-                        .entry(next_knot)
-                        .and_modify(|amount| *amount += 1)
-                        .or_insert(1);
+                            .entry(next_knot)
+                            .and_modify(|amount| *amount += 1)
+                            .or_insert(1);
                     }
                 }
-
-                println!("Index: {}, Head: {:?}, next: {:?}", index, &head_position, &next_knot);
 
                 // end: update positions in vec and variables
 
                 knots[index] = next_knot;
                 head_position = next_knot;
-                
             }
 
             // loop finishes, reset head_position
             head_position = *knots.get(0).unwrap();
         }
+
+        // println!("state after direction: {:?} {}, {:?}", &direction, &distance, &knots.iter().map(|x| x.to_string()).collect::<Vec<_>>());
     }
 
-
-    println!("{:?}", &positions_visited);
+    // println!("{:?}", &positions_visited);
 
     positions_visited
         .into_iter()
@@ -183,7 +171,6 @@ U 20
 
     #[test]
     fn test_answer2() {
-
         let input_data = import_data(TEST_DATA);
         assert_eq!(1, answer_part2(input_data));
 
