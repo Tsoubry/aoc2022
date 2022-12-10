@@ -86,6 +86,94 @@ impl<const N: usize> Grid<N> {
             .ok_or(CoordinateError)
             .copied()
     }
+
+    fn find_viewing_distance_up(&self, x: usize, y: usize, tree_value: u8) -> u32 {
+        let iter = self.grid.iter().map(|s| s.iter().nth(x).unwrap()).take(y);
+
+        if iter.len() == 0 {
+            return 0;
+        } else {
+            let mut trees_clear: u32 = 0;
+
+            for tree in iter.rev() {
+                if *tree < tree_value {
+                    trees_clear += 1;
+                } else {
+                    trees_clear += 1;
+                    break;
+                }
+            }
+
+            return trees_clear;
+        }
+    }
+
+    fn find_viewing_distance_down(&self, x: usize, y: usize, tree_value: u8) -> u32 {
+        let iter = self
+            .grid
+            .iter()
+            .map(|s| s.iter().nth(x).unwrap())
+            .skip(y + 1);
+
+        if iter.len() == 0 {
+            return 0;
+        } else {
+            let mut trees_clear: u32 = 0;
+
+            for tree in iter {
+                if *tree < tree_value {
+                    trees_clear += 1;
+                } else {
+                    trees_clear += 1;
+                    break;
+                }
+            }
+
+            return trees_clear;
+        }
+    }
+
+    fn find_viewing_distance_left(&self, x: usize, y: usize, tree_value: u8) -> u32 {
+        let iter = self.grid.get(y).unwrap().get(..x).unwrap().iter();
+
+        if iter.len() == 0 {
+            return 0;
+        } else {
+            let mut trees_clear: u32 = 0;
+
+            for tree in iter.rev() {
+                if *tree < tree_value {
+                    trees_clear += 1;
+                } else {
+                    trees_clear += 1;
+                    break;
+                }
+            }
+
+            return trees_clear;
+        }
+    }
+
+    fn find_viewing_distance_right(&self, x: usize, y: usize, tree_value: u8) -> u32 {
+        let iter = self.grid.get(y).unwrap().get(x + 1..).unwrap().iter();
+
+        if iter.len() == 0 {
+            return 0;
+        } else {
+            let mut trees_clear: u32 = 0;
+
+            for tree in iter {
+                if *tree < tree_value {
+                    trees_clear += 1;
+                } else {
+                    trees_clear += 1;
+                    break;
+                }
+            }
+
+            return trees_clear;
+        }
+    }
 }
 
 impl<const N: usize> Default for Grid<N> {
@@ -125,9 +213,28 @@ fn answer_part1<const N: usize>(grid: Grid<N>) -> u32 {
     total_visible
 }
 
-// fn answer_part2<const N: usize>(grid: Grid<N>) -> u32 {
+fn answer_part2<const N: usize>(grid: Grid<N>) -> u32 {
+    let mut highest_score: u32 = 0;
 
-// }
+    for col_number in 0..N {
+        for row_number in 0..N {
+            let current_value = grid.get_coordinate_value(row_number, col_number).unwrap();
+
+            let up = grid.find_viewing_distance_up(row_number, col_number, current_value);
+            let down = grid.find_viewing_distance_down(row_number, col_number, current_value);
+            let left = grid.find_viewing_distance_left(row_number, col_number, current_value);
+            let right = grid.find_viewing_distance_right(row_number, col_number, current_value);
+
+            let score = up * down * left * right;
+
+            if score > highest_score {
+                highest_score = score
+            };
+        }
+    }
+
+    highest_score
+}
 
 fn main() {
     let input_data = import_data(include_str!("../input.txt"));
@@ -135,13 +242,13 @@ fn main() {
     let mut grid = Grid::<MATRIX_SIZE>::default();
     grid.from_data(input_data);
 
-    grid.print();
+    // grid.print();
 
     println!(
         "Answer of part 1 is: {}",
         answer_part1::<MATRIX_SIZE>(grid.clone())
     );
-    // println!("Answer of part 2 is: {}", answer_part2(input_data));
+    println!("Answer of part 2 is: {}", answer_part2(grid));
 }
 
 #[cfg(test)]
@@ -191,9 +298,32 @@ mod tests {
         assert_eq!(21, answer_part1(grid));
     }
 
-    // #[test]
-    // fn test_answer2() {
-    //     let input_data = import_data(TEST_DATA);
-    //     assert_eq!(, answer_part2(input_data));
-    // }
+    #[test]
+    fn test_functions_part2() {
+        let input_data = import_data(TEST_DATA);
+
+        let mut grid = Grid::<5>::default();
+        grid.from_data(input_data);
+
+        assert_eq!(3, grid.find_viewing_distance_up(3, 3, 4));
+
+        assert_eq!(1, grid.find_viewing_distance_down(3, 3, 4));
+        assert_eq!(2, grid.find_viewing_distance_down(0, 0, 3));
+
+        assert_eq!(0, grid.find_viewing_distance_left(0, 0, 3));
+        assert_eq!(1, grid.find_viewing_distance_left(1, 0, 0));
+
+        assert_eq!(2, grid.find_viewing_distance_right(0, 0, 3));
+        assert_eq!(0, grid.find_viewing_distance_right(4, 4, 0));
+    }
+
+    #[test]
+    fn test_answer2() {
+        let input_data = import_data(TEST_DATA);
+
+        let mut grid = Grid::<5>::default();
+        grid.from_data(input_data);
+
+        assert_eq!(8, answer_part2(grid));
+    }
 }
