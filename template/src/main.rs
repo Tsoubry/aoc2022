@@ -1,13 +1,6 @@
-type Parsed = ();
+pub mod data;
 
-
-fn import_data(data: &str) -> Vec<Parsed> {
-    data.lines().map(|line| parse(line)).collect()
-}
-
-fn parse(line: &str) -> Parsed {
-    todo!()
-}
+use crate::data::*;
 
 // fn answer_part1(data: Vec<Parsed>) -> i64 {
 
@@ -28,16 +21,7 @@ fn main() {
 mod tests {
 
     use super::*;
-
-    const TEST_DATA: &str = r#"
-"#;
-    
-
-    #[test]
-    fn test_parsing() {
-        let input_data = import_data(TEST_DATA);
-        println!("{:?}", input_data);
-    }
+    use crate::data::TEST_DATA;
 
     // #[test]
     // fn test_answer1() {
