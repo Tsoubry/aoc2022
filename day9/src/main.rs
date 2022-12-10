@@ -4,10 +4,9 @@ use strum_macros::EnumString;
 #[macro_use]
 extern crate derive_new;
 
-
-use std::str::FromStr;
-use std::collections::HashMap;
 use crate::coordinate::Coordinate;
+use std::collections::HashMap;
+use std::str::FromStr;
 
 #[derive(Debug, Copy, Clone, EnumString, PartialEq)]
 pub enum Direction {
@@ -18,7 +17,6 @@ pub enum Direction {
 }
 
 pub type Instruction = (Direction, u8);
-
 
 fn import_data(data: &str) -> Vec<Instruction> {
     data.lines().map(|line| parse(line)).collect()
@@ -33,7 +31,6 @@ fn parse(line: &str) -> Instruction {
 }
 
 fn answer_part1(data: Vec<Instruction>) -> usize {
-
     let mut positions_visited: HashMap<Coordinate, u32> = HashMap::new();
 
     let mut head_position = Coordinate::new(0, 0);
@@ -41,31 +38,31 @@ fn answer_part1(data: Vec<Instruction>) -> usize {
     positions_visited.insert(tail_position, 1);
 
     for (direction, distance) in data {
-
         for _ in 0..distance {
-
             head_position = head_position.walk(&direction);
             if head_position.check_coordinate_around(&tail_position) {
                 // don't need to do anything
             } else {
-                if head_position.get_x() != tail_position.get_x() && head_position.get_y() != tail_position.get_y() {
+                if head_position.get_x() != tail_position.get_x()
+                    && head_position.get_y() != tail_position.get_y()
+                {
                     tail_position = tail_position.walk_diagonally(&direction, &head_position);
                 } else {
-                    tail_position = tail_position.walk(&direction); 
+                    tail_position = tail_position.walk(&direction);
                 }
 
-                positions_visited.entry(tail_position).and_modify(|amount| *amount += 1).or_insert(1);
+                positions_visited
+                    .entry(tail_position)
+                    .and_modify(|amount| *amount += 1)
+                    .or_insert(1);
             }
-
         }
-
     }
 
     positions_visited
-    .into_iter()
-    .filter(|(_, value)| value >= &1)
-    .count()
-
+        .into_iter()
+        .filter(|(_, value)| value >= &1)
+        .count()
 }
 
 // fn answer_part2(data: Vec<Instruction>) -> i64 {
@@ -93,7 +90,6 @@ D 1
 L 5
 R 2
 "#;
-    
 
     #[test]
     fn test_parsing() {
@@ -114,7 +110,5 @@ R 2
     // }
 
     #[test]
-    fn playground() {
-        
-    }
+    fn playground() {}
 }
