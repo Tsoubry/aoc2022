@@ -12,7 +12,6 @@ edition = "2021"
 # bimap = "0.6.2"
 strum = "0.24"
 strum_macros = "0.24"
-derive-new = "0.5.9"
 
 
 [profile.release]
