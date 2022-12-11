@@ -5,9 +5,9 @@ use regex::Regex;
 
 pub struct Monkey {
     pub number: usize,
-    pub items_worry: VecDeque<usize>,
-    pub operation: Box<dyn Fn(usize) -> usize>,
-    pub test_number: usize,
+    pub items_worry: VecDeque<u128>,
+    pub operation: Box<dyn Fn(u128) -> u128>,
+    pub test_number: u128,
     pub throw_true: usize,
     pub throw_false: usize,
 }
@@ -46,11 +46,11 @@ pub fn parse(monkey_str: &'static str) -> Monkey {
         .get(1)
         .expect("no capture groups for starting items");
 
-    let starting_items: VecDeque<usize> = unparsed_starting_items
+    let starting_items: VecDeque<u128> = unparsed_starting_items
         .as_str()
         .split_terminator(", ")
         .map(|item| {
-            item.parse::<usize>()
+            item.parse::<u128>()
                 .expect("couldn't parse number from string for items")
         })
         .collect();
@@ -59,7 +59,7 @@ pub fn parse(monkey_str: &'static str) -> Monkey {
     let caps = re_operation
         .captures(&monkey_str)
         .expect("problem with operation parsing");
-    let first: Option<usize> = caps
+    let first: Option<u128> = caps
         .get(1)
         .expect("no capture groups for operations")
         .as_str()
@@ -69,21 +69,21 @@ pub fn parse(monkey_str: &'static str) -> Monkey {
         .get(2)
         .expect("no capture groups for operations")
         .as_str();
-    let second: Option<usize> = caps
+    let second: Option<u128> = caps
         .get(3)
         .expect("no capture groups for operations")
         .as_str()
         .parse()
         .ok();
 
-    let operation_closure = Box::new(move |old: usize| match operator {
+    let operation_closure = Box::new(move |old: u128| match operator {
         "*" => first.unwrap_or(old) * second.unwrap_or(old),
         "+" => first.unwrap_or(old) + second.unwrap_or(old),
         _ => unreachable!(),
     });
 
     let re_test = Regex::new(r".*\s\sTest: divisible by\s(\d+)\n").unwrap();
-    let test_number: usize = re_test
+    let test_number: u128 = re_test
         .captures(&monkey_str)
         .expect("problem with test number parsing")
         .get(1)
