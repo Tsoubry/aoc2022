@@ -5,6 +5,8 @@ extern crate derive_new;
 
 use std::collections::HashMap;
 
+use regex::Regex;
+
 use crate::data::*;
 
 #[derive(new, Clone, Debug)]
@@ -18,42 +20,38 @@ fn answer_part1(data: Vec<Operation>) -> u64 {
     let mut fs: HashMap<String, DirInfo> = HashMap::new();
     fs.insert("/".to_string(), DirInfo::new(None, 0, 0));
 
-    let mut cwd: Option<String> = None;
     let mut current_level = 0;
+    let mut path: String = "/".to_string();
 
     for command in data {
-        let refcwd = &mut cwd;
         match command {
             Operation::Ls => (),
             Operation::ReturnDir(dir_name) => {
-                let new_directory = DirInfo::new(refcwd.clone(), 0, current_level + 1);
-                fs.entry(dir_name)
+                let new_directory = DirInfo::new(Some(path.clone()), 0, current_level + 1);
+                let new_path = format!("{}/{}", path, dir_name);
+                fs.entry(new_path)
                     .and_modify(|_| ())
                     .or_insert(new_directory);
             }
             Operation::ReturnSize(size) => {
-                fs.entry(refcwd.clone().expect("invalid key in returnsize"))
+                fs.entry(path.clone())
                     .and_modify(|meta| meta.filesize += size);
             }
             Operation::Cd(dir_name) => {
                 match dir_name.as_str() {
                     ".." => {
-                        let upper_dir = fs
-                            .get(&refcwd.clone().unwrap())
-                            .expect("key doesn't exist for .. operation")
-                            .upper_directory
-                            .clone();
-                        cwd = upper_dir;
+                        let re_upper = Regex::new(r"(.+)/[a-zA-Z0-9]+$").unwrap();
+                        let caps = re_upper.captures(&path).unwrap().get(1).unwrap().as_str();
                         current_level -= 1;
+                        path = format!("{}", caps);
                     }
                     "/" => {
-                        cwd = Some("/".to_string());
                         current_level = 0;
+                        path = "/".to_string();
                     }
                     x_directory => {
-                        assert!(fs.contains_key(x_directory));
-                        cwd = Some(x_directory.to_string());
                         current_level += 1;
+                        path = format!("{}/{}", path, x_directory);
                     }
                 };
             }
@@ -78,8 +76,6 @@ fn answer_part1(data: Vec<Operation>) -> u64 {
                 .and_modify(|dir| dir.filesize += filesize);
         };
     }
-
-    println!("Filesystem: {:?}", &fs);
 
     fs.into_iter()
         .map(|(_, v)| v.filesize)
