@@ -3,104 +3,88 @@ pub mod data;
 #[macro_use]
 extern crate derive_new;
 
+use std::collections::HashMap;
+
 use crate::data::*;
 
-#[derive(Clone, Debug)]
-struct Fs {
-    pub dirs: Vec<Dir>,
-    pub cursor: String,
+#[derive(new, Clone, Debug)]
+pub struct DirInfo {
+    pub upper_directory: Option<String>,
+    pub filesize: u64,
+    pub level: usize,
 }
 
-impl Default for Fs {
-    fn default() -> Self {
-        let path = "/".to_string();
-        Self {
-            dirs: vec![Dir::new(path.clone(), 0, None, vec![])],
-            cursor: path,
-        }
-    }
-}
+fn answer_part1(data: Vec<Operation>) -> u64 {
+    let mut fs: HashMap<String, DirInfo> = HashMap::new();
+    fs.insert("/".to_string(), DirInfo::new(None, 0, 0));
 
-impl Fs {
-    fn get_current_directory(&mut self) -> &mut Dir {
-        self.dirs
-            .iter_mut()
-            .find(|d| d.name == self.cursor)
-            .unwrap()
-    } // this is wrong! Just use a hashmap
+    let mut cwd: Option<String> = None;
+    let mut current_level = 0;
 
-    fn run_commands(&mut self, data: Vec<String>) {
-        for line in data {
-            match parse_command(&line) {
-                Operation::Ls => (),
-                Operation::ReturnDir(dir_name) => {
-                    let new_directory = Dir::new(dir_name, 0, Some(self.cursor.clone()), vec![]);
-                    let current_directory = self.get_current_directory();
-                    current_directory.dirs.push(new_directory);
-                }
-                Operation::ReturnSize(size) => {
-                    let current_directory = self.get_current_directory();
-                    current_directory.filesize += size;
-                }
-                Operation::Cd(dir_name) => {
-                    match dir_name.as_str() {
-                        ".." => {
-                            let current_directory = self.get_current_directory();
-                            self.cursor = current_directory.upper_directory.clone().unwrap();
-                        }
-                        "/" => {
-                            self.cursor = "/".to_string();
-                        }
-                        x_directory => {
-                            println!("x dir: {:?}", &self.dirs);
-                            let current_directory = self.get_current_directory();
-                            let cd_directory = current_directory
-                                .dirs
-                                .iter_mut()
-                                .find(|d| d.name == x_directory)
-                                .unwrap();
-                            self.cursor = cd_directory.name.clone();
-                        }
-                    };
-                }
+    for command in data {
+        let refcwd = &mut cwd;
+        match command {
+            Operation::Ls => (),
+            Operation::ReturnDir(dir_name) => {
+                let new_directory = DirInfo::new(refcwd.clone(), 0, current_level + 1);
+                fs.entry(dir_name)
+                    .and_modify(|_| ())
+                    .or_insert(new_directory);
+            }
+            Operation::ReturnSize(size) => {
+                fs.entry(refcwd.clone().expect("invalid key in returnsize"))
+                    .and_modify(|meta| meta.filesize += size);
+            }
+            Operation::Cd(dir_name) => {
+                match dir_name.as_str() {
+                    ".." => {
+                        let upper_dir = fs
+                            .get(&refcwd.clone().unwrap())
+                            .expect("key doesn't exist for .. operation")
+                            .upper_directory
+                            .clone();
+                        cwd = upper_dir;
+                        current_level -= 1;
+                    }
+                    "/" => {
+                        cwd = Some("/".to_string());
+                        current_level = 0;
+                    }
+                    x_directory => {
+                        assert!(fs.contains_key(x_directory));
+                        cwd = Some(x_directory.to_string());
+                        current_level += 1;
+                    }
+                };
             }
         }
     }
 
-    fn calculate_result(&self) -> u64 {
-        calculate_dir_sizes(&self.dirs, 0)
-    }
-}
+    // println!("Filesystem: {:?}", &fs);
 
-fn calculate_dir_sizes(sub_dirs: &Vec<Dir>, size: u64) -> u64 {
-    for dir in sub_dirs {
-        let recursive_dir_sizes = calculate_dir_sizes(&dir.dirs, dir.filesize + size);
-        if recursive_dir_sizes <= 100000 {
-            println!("recursive: {}", recursive_dir_sizes);
-            return recursive_dir_sizes;
-        } else {
-            return 0;
+    let mut directories: Vec<_> = fs.clone().into_iter().collect();
+    directories.sort_by_key(|(_, meta)| meta.level);
+    directories.reverse();
+
+    for (dirname, meta) in directories.into_iter() {
+        let mut filesize: u64;
+
+        {
+            filesize = fs.get(&dirname).clone().unwrap().filesize;
         }
+
+        if let Some(upper_directory) = meta.upper_directory {
+            fs.entry(upper_directory)
+                .and_modify(|dir| dir.filesize += filesize);
+        };
     }
 
-    if size <= 100000 {
-        println!("size: {}", size);
-        size
-    } else {
-        0
-    }
-}
+    println!("Filesystem: {:?}", &fs);
 
-fn answer_part1(data: Vec<String>) -> u64 {
-    let mut directory = Fs::default();
-
-    println!("{:?}", &directory.dirs);
-
-    directory.run_commands(data);
-
-    println!("{:?}", &directory.dirs);
-
-    directory.calculate_result()
+    fs.into_iter()
+        .map(|(_, v)| v.filesize)
+        .filter(|filesize| filesize <= &100_000)
+        .sum()
 }
 
 // fn answer_part2(data: Vec<Parsed>) -> i64 {
@@ -110,7 +94,7 @@ fn answer_part1(data: Vec<String>) -> u64 {
 fn main() {
     let input_data = import_data(include_str!("../input.txt"));
 
-    println!("Answer of part 1 is: {}", answer_part1(input_data.clone()));
+    println!("Answer of part 1 is: {}", answer_part1(input_data.clone())); // not 1588580
     // println!("Answer of part 2 is: {}", answer_part2(input_data));
 }
 

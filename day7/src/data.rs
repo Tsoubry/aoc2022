@@ -1,13 +1,6 @@
 use regex::Regex;
 
-#[derive(new, Clone, Debug)]
-pub struct Dir {
-    pub name: String,
-    pub filesize: u64,
-    pub upper_directory: Option<String>,
-    pub dirs: Vec<Dir>,
-}
-
+#[derive(Debug, Clone)]
 pub enum Operation {
     Ls,
     Cd(String),
@@ -15,8 +8,8 @@ pub enum Operation {
     ReturnSize(u64),
 }
 
-pub fn import_data(data: &str) -> Vec<String> {
-    data.lines().map(|x| x.into()).collect()
+pub fn import_data(data: &str) -> Vec<Operation> {
+    data.lines().map(|line| parse_command(line)).collect()
 }
 
 pub fn parse_command(line: &str) -> Operation {
@@ -78,6 +71,9 @@ mod tests {
     #[test]
     fn test_parsing() {
         let input_data = import_data(TEST_DATA);
-        // println!("{:?}", input_data);
+
+        input_data
+            .into_iter()
+            .for_each(|operation| println!("{:?}", operation));
     }
 }
