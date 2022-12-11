@@ -58,8 +58,6 @@ fn answer_part1(data: Vec<Operation>) -> u64 {
         }
     }
 
-    // println!("Filesystem: {:?}", &fs);
-
     let mut directories: Vec<_> = fs.clone().into_iter().collect();
     directories.sort_by_key(|(_, meta)| meta.level);
     directories.reverse();
@@ -83,15 +81,15 @@ fn answer_part1(data: Vec<Operation>) -> u64 {
         .sum()
 }
 
-// fn answer_part2(data: Vec<Parsed>) -> i64 {
-
-// }
+fn answer_part2(data: Vec<Operation>) -> u64 {
+    
+}
 
 fn main() {
     let input_data = import_data(include_str!("../input.txt"));
 
     println!("Answer of part 1 is: {}", answer_part1(input_data.clone())); // not 1588580
-    // println!("Answer of part 2 is: {}", answer_part2(input_data));
+    println!("Answer of part 2 is: {}", answer_part2(input_data));
 }
 
 #[cfg(test)]
@@ -107,11 +105,11 @@ mod tests {
         assert_eq!(95437, answer_part1(input_data));
     }
 
-    // #[test]
-    // fn test_answer2() {
-    //     let input_data = import_data(TEST_DATA);
-    //     assert_eq!(, answer_part2(input_data));
-    // }
+    #[test]
+    fn test_answer2() {
+        let input_data = import_data(TEST_DATA);
+        assert_eq!(24933642, answer_part2(input_data));
+    }
 
     #[test]
     fn playground() {}
