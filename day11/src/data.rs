@@ -170,8 +170,6 @@ mod tests {
 
         let monkey = input_data.first().unwrap();
 
-        let c = monkey.operation.as_ref();
-
         assert_eq!(
             1501,
             monkey.operation.as_ref()(*monkey.items_worry.front().unwrap())

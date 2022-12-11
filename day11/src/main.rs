@@ -40,8 +40,7 @@ fn answer_part1(data: Vec<Monkey>) -> usize {
                         .or_insert(1);
 
                     let new_worry_level = monkey.operation.as_ref()(item);
-                    let level_after_bored: u128 =
-                        ((new_worry_level as f64) / 3.0).floor() as u128;
+                    let level_after_bored: u128 = ((new_worry_level as f64) / 3.0).floor() as u128;
 
                     if level_after_bored % monkey.test_number == 0 {
                         transfer_monkey = monkey.throw_true;
@@ -59,7 +58,6 @@ fn answer_part1(data: Vec<Monkey>) -> usize {
             for (key, value) in ledger.drain() {
                 add_items_to_monkey(&mut monkeys, key, value);
             }
-
         }
     }
 
@@ -71,8 +69,13 @@ fn answer_part1(data: Vec<Monkey>) -> usize {
 }
 
 fn answer_part2(data: Vec<Monkey>) -> usize {
-
     let mut monkeys = data;
+
+    let lowest_common_multiple = monkeys
+        .iter()
+        .map(|monkey| monkey.test_number)
+        .reduce(|first, next| first * next)
+        .unwrap();
 
     let mut inspections: HashMap<usize, usize> = HashMap::new();
 
@@ -98,7 +101,7 @@ fn answer_part2(data: Vec<Monkey>) -> usize {
                         .or_insert(1);
 
                     let new_worry_level = monkey.operation.as_ref()(item);
-                    let level_after_bored: u128 = new_worry_level;
+                    let level_after_bored: u128 = new_worry_level % lowest_common_multiple;
 
                     if (level_after_bored % monkey.test_number) == 0 {
                         transfer_monkey = monkey.throw_true;
@@ -116,13 +119,6 @@ fn answer_part2(data: Vec<Monkey>) -> usize {
             for (key, value) in ledger.drain() {
                 add_items_to_monkey(&mut monkeys, key, value);
             }
-            
-        }
-
-        if [1, 20, 1000, 10000].contains(&(_round + 1)) {
-            println!("After round {}:", _round);
-            monkeys.iter().for_each(|m| println!("{:?}", m.items_worry));
-            // inspections.iter().for_each(|(monkey_number, inspect)| println!("Monkey {}: {:?}", monkey_number, inspect));
         }
     }
 
@@ -131,7 +127,6 @@ fn answer_part2(data: Vec<Monkey>) -> usize {
     all_inspections.reverse();
 
     all_inspections.first().unwrap() * all_inspections.get(1).unwrap()
-
 }
 
 fn main() {
@@ -159,7 +154,4 @@ mod tests {
         let input_data = import_data(TEST_DATA);
         assert_eq!(2713310158, answer_part2(input_data));
     }
-
-    #[test]
-    fn playground() {}
 }
