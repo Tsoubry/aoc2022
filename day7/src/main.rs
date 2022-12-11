@@ -1,58 +1,14 @@
-use regex::Regex;
+pub mod data;
 
 #[macro_use]
 extern crate derive_new;
 
-fn import_data(data: &str) -> Vec<String> {
-    data.lines().map(|x| x.into()).collect()
-}
-
-#[derive(new, Clone, Debug)]
-struct Dir {
-    pub name: String,
-    pub filesize: u64,
-    pub upper_directory: Option<String>,
-    pub dirs: Vec<Dir>,
-}
-
-enum Operation {
-    Ls,
-    Cd(String),
-    ReturnDir(String),
-    ReturnSize(u64),
-}
+use crate::data::*;
 
 #[derive(Clone, Debug)]
 struct Fs {
     pub dirs: Vec<Dir>,
     pub cursor: String,
-}
-
-fn parse_command(line: &str) -> Operation {
-    let re = Regex::new(r"^\$?\s?(ls|cd|dir)\s?(.*)").unwrap();
-
-    match re.captures(&line) {
-        Some(caps) => {
-            let command = caps
-                .get(1)
-                .and_then(|x| Some(x.as_str().to_owned()))
-                .unwrap();
-            match command.as_str() {
-                "ls" => return Operation::Ls,
-                "cd" => return Operation::Cd(caps.get(2).unwrap().as_str().to_owned()),
-                "dir" => return Operation::ReturnDir(caps.get(2).unwrap().as_str().to_owned()),
-                _ => unreachable!(),
-            }
-        }
-        None => {
-            // parse file:
-            let re2 = Regex::new(r"^(\d+)\s(.+)").unwrap();
-
-            let caps2 = re2.captures(&line).unwrap();
-
-            Operation::ReturnSize(caps2.get(1).unwrap().as_str().parse().unwrap())
-        }
-    }
 }
 
 impl Default for Fs {
@@ -163,30 +119,7 @@ mod tests {
 
     use super::*;
 
-    const TEST_DATA: &str = r#"$ cd /
-$ ls
-dir a
-14848514 b.txt
-8504156 c.dat
-dir d
-$ cd a
-$ ls
-dir e
-29116 f
-2557 g
-62596 h.lst
-$ cd e
-$ ls
-584 i
-$ cd ..
-$ cd ..
-$ cd d
-$ ls
-4060174 j
-8033020 d.log
-5626152 d.ext
-7214296 k
-"#;
+    use crate::data::TEST_DATA;
 
     #[test]
     fn test_answer1() {
