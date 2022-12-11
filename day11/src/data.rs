@@ -1,12 +1,11 @@
-use std::fmt::{Display, write};
+use std::collections::VecDeque;
+use std::fmt::{write, Display};
 
 use regex::Regex;
 
-
-// #[derive(new)]
 pub struct Monkey {
     pub number: usize,
-    pub items_worry: Vec<usize>,
+    pub items_worry: VecDeque<usize>,
     pub operation: Box<dyn Fn(usize) -> usize>,
     pub test_number: usize,
     pub throw_true: usize,
@@ -21,70 +20,106 @@ impl Display for Monkey {
 }
 
 pub fn import_data(data: &'static str) -> Vec<Monkey> {
-    let mut monkeys: Vec<_> = data.split_terminator("\n\n").collect();
+    let monkeys: Vec<_> = data.split_terminator("\n\n").collect();
 
-    monkeys.iter().map(|monkey_str|parse(&monkey_str)).collect()
-
+    monkeys
+        .iter()
+        .map(|monkey_str| parse(&monkey_str))
+        .collect()
 }
 
 pub fn parse(monkey_str: &'static str) -> Monkey {
     let re_number = Regex::new(r"^Monkey (\d+).*").unwrap();
-    let monkey_number: usize = re_number.captures(&monkey_str).expect("problem with monkey number parsing")
-        .get(1).expect("no capture groups for monkey number").as_str().parse().expect("couldn't parse number from string")
-        ;
+    let monkey_number: usize = re_number
+        .captures(&monkey_str)
+        .expect("problem with monkey number parsing")
+        .get(1)
+        .expect("no capture groups for monkey number")
+        .as_str()
+        .parse()
+        .expect("couldn't parse number from string");
 
     let re_items = Regex::new(r".*\s\sStarting items:\s(.*)\n").unwrap();
-    let unparsed_starting_items = re_items.captures(&monkey_str).expect("problem with parsing starting items")
-    .get(1).expect("no capture groups for starting items");
+    let unparsed_starting_items = re_items
+        .captures(&monkey_str)
+        .expect("problem with parsing starting items")
+        .get(1)
+        .expect("no capture groups for starting items");
 
-    let starting_items: Vec<usize> = unparsed_starting_items.as_str().split_terminator(", ")
-    .map(|item| item.parse::<usize>().expect("couldn't parse number from string for items")).collect();
+    let starting_items: VecDeque<usize> = unparsed_starting_items
+        .as_str()
+        .split_terminator(", ")
+        .map(|item| {
+            item.parse::<usize>()
+                .expect("couldn't parse number from string for items")
+        })
+        .collect();
 
     let re_operation = Regex::new(r".*\s\sOperation: new = (old|\d+) (\*|\+) (old|\d+)\n").unwrap();
-    let caps = re_operation.captures(&monkey_str).expect("problem with operation parsing");
-    let first: Option<usize> = caps.get(1).expect("no capture groups for operations").as_str().parse().ok();
-    let operator = caps.get(2).expect("no capture groups for operations").as_str();
-    let second: Option<usize> = caps.get(3).expect("no capture groups for operations").as_str().parse().ok();
-    
+    let caps = re_operation
+        .captures(&monkey_str)
+        .expect("problem with operation parsing");
+    let first: Option<usize> = caps
+        .get(1)
+        .expect("no capture groups for operations")
+        .as_str()
+        .parse()
+        .ok();
+    let operator = caps
+        .get(2)
+        .expect("no capture groups for operations")
+        .as_str();
+    let second: Option<usize> = caps
+        .get(3)
+        .expect("no capture groups for operations")
+        .as_str()
+        .parse()
+        .ok();
 
-    let operation_closure = Box::new(move |old: usize| { 
-        match operator {
-            "*" => {
-                first.unwrap_or(old) * second.unwrap_or(old)
-            },
-            "+" => {
-                first.unwrap_or(old) + second.unwrap_or(old)
-            },
-            _ => unreachable!()
-        }
-
-
+    let operation_closure = Box::new(move |old: usize| match operator {
+        "*" => first.unwrap_or(old) * second.unwrap_or(old),
+        "+" => first.unwrap_or(old) + second.unwrap_or(old),
+        _ => unreachable!(),
     });
 
     let re_test = Regex::new(r".*\s\sTest: divisible by\s(\d+)\n").unwrap();
-    let test_number: usize = re_test.captures(&monkey_str).expect("problem with test number parsing")
-    .get(1).expect("no capture groups for test number").as_str().parse().expect("couldn't parse test number from string")
-    ;
+    let test_number: usize = re_test
+        .captures(&monkey_str)
+        .expect("problem with test number parsing")
+        .get(1)
+        .expect("no capture groups for test number")
+        .as_str()
+        .parse()
+        .expect("couldn't parse test number from string");
 
     let re_true = Regex::new(r".*\s\s\s\sIf true: throw to monkey\s(\d+)\n").unwrap();
-    let true_number: usize = re_true.captures(&monkey_str).expect("problem with true number parsing")
-    .get(1).expect("no capture groups for true number").as_str().parse().expect("couldn't parse true number from string")
-    ;
+    let true_number: usize = re_true
+        .captures(&monkey_str)
+        .expect("problem with true number parsing")
+        .get(1)
+        .expect("no capture groups for true number")
+        .as_str()
+        .parse()
+        .expect("couldn't parse true number from string");
 
     let re_false = Regex::new(r".*\s\s\s\sIf false: throw to monkey\s(\d+)").unwrap();
-    let false_number: usize = re_false.captures(&monkey_str).expect("problem with false number parsing")
-    .get(1).expect("no capture groups for false number").as_str().parse().expect("couldn't parse false number from string")
-    ;
+    let false_number: usize = re_false
+        .captures(&monkey_str)
+        .expect("problem with false number parsing")
+        .get(1)
+        .expect("no capture groups for false number")
+        .as_str()
+        .parse()
+        .expect("couldn't parse false number from string");
 
     Monkey {
-        number: monkey_number, 
-        items_worry: starting_items, 
-        operation: operation_closure, 
-        test_number, 
-        throw_true: true_number, 
+        number: monkey_number,
+        items_worry: starting_items,
+        operation: operation_closure,
+        test_number,
+        throw_true: true_number,
         throw_false: false_number,
     }
-
 }
 
 pub const TEST_DATA: &str = r#"Monkey 0:
@@ -137,7 +172,9 @@ mod tests {
 
         let c = monkey.operation.as_ref();
 
-        assert_eq!(1501, monkey.operation.as_ref()(*monkey.items_worry.first().unwrap()))
-
+        assert_eq!(
+            1501,
+            monkey.operation.as_ref()(*monkey.items_worry.front().unwrap())
+        )
     }
 }
