@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# requires cargo-generate, install with cargo install cargo-generate
 # Create cookie file, fill in with cookie from the network tools once logged in on adventofcode.com
 
 [[ $# -eq 0 ]] && echo "Usage: ./generate.sh day"
