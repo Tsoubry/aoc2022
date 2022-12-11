@@ -20,14 +20,14 @@ impl Display for Monkey {
     }
 }
 
-pub fn import_data(data: &str) -> Vec<Monkey> {
+pub fn import_data(data: &'static str) -> Vec<Monkey> {
     let mut monkeys: Vec<_> = data.split_terminator("\n\n").collect();
 
     monkeys.iter().map(|monkey_str|parse(&monkey_str)).collect()
 
 }
 
-pub fn parse(monkey_str: &str) -> Monkey {
+pub fn parse(monkey_str: &'static str) -> Monkey {
     let re_number = Regex::new(r"^Monkey (\d+).*").unwrap();
     let monkey_number: usize = re_number.captures(&monkey_str).expect("problem with monkey number parsing")
         .get(1).expect("no capture groups for monkey number").as_str().parse().expect("couldn't parse number from string")
@@ -42,10 +42,24 @@ pub fn parse(monkey_str: &str) -> Monkey {
 
     let re_operation = Regex::new(r".*\s\sOperation: new = (old|\d+) (\*|\+) (old|\d+)\n").unwrap();
     let caps = re_operation.captures(&monkey_str).expect("problem with operation parsing");
-    let first: usize = caps.get(1).expect("no capture groups for operations").as_str()
-    .parse().expect("couldn't parse number from operation string");
+    let first: Option<usize> = caps.get(1).expect("no capture groups for operations").as_str().parse().ok();
+    let operator = caps.get(2).expect("no capture groups for operations").as_str();
+    let second: Option<usize> = caps.get(3).expect("no capture groups for operations").as_str().parse().ok();
+    
 
-    let operation_closure = Box::new(move |old: usize| { first * old });
+    let operation_closure = Box::new(move |old: usize| { 
+        match operator {
+            "*" => {
+                first.unwrap_or(old) * second.unwrap_or(old)
+            },
+            "+" => {
+                first.unwrap_or(old) + second.unwrap_or(old)
+            },
+            _ => unreachable!()
+        }
+
+
+    });
 
     let re_test = Regex::new(r".*\s\sTest: divisible by\s(\d+)\n").unwrap();
     let test_number: usize = re_test.captures(&monkey_str).expect("problem with test number parsing")
@@ -113,8 +127,17 @@ mod tests {
         input_data
             .into_iter()
             .for_each(|monkey| println!("{}", monkey));
+    }
 
+    #[test]
+    fn test_closures() {
+        let input_data = import_data(TEST_DATA);
 
-        // println!("{:?}", input_data);
+        let monkey = input_data.first().unwrap();
+
+        let c = monkey.operation.as_ref();
+
+        assert_eq!(1501, monkey.operation.as_ref()(*monkey.items_worry.first().unwrap()))
+
     }
 }
