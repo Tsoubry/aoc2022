@@ -16,7 +16,7 @@ pub struct DirInfo {
     pub level: usize,
 }
 
-fn answer_part1(data: Vec<Operation>) -> u64 {
+fn get_directory_sizes(data: Vec<Operation>) -> HashMap<String, DirInfo> {
     let mut fs: HashMap<String, DirInfo> = HashMap::new();
     fs.insert("/".to_string(), DirInfo::new(None, 0, 0));
 
@@ -75,6 +75,12 @@ fn answer_part1(data: Vec<Operation>) -> u64 {
         };
     }
 
+    fs
+}
+
+fn answer_part1(data: Vec<Operation>) -> u64 {
+    let fs = get_directory_sizes(data);
+
     fs.into_iter()
         .map(|(_, v)| v.filesize)
         .filter(|filesize| filesize <= &100_000)
@@ -82,7 +88,24 @@ fn answer_part1(data: Vec<Operation>) -> u64 {
 }
 
 fn answer_part2(data: Vec<Operation>) -> u64 {
-    
+    let total_size: u64 = 70_000_000;
+    let space_needed: u64 = 30_000_000;
+
+    let fs = get_directory_sizes(data);
+
+    let space_used = fs.get(&"/".to_string()).unwrap().filesize;
+
+    let space_to_free = space_needed - (total_size - space_used);
+
+    let mut directory_candidates: Vec<_> = fs
+        .into_iter()
+        .map(|(_, v)| v.filesize)
+        .filter(|filesize| filesize > &space_to_free)
+        .collect();
+
+    directory_candidates.sort();
+
+    *directory_candidates.first().unwrap()
 }
 
 fn main() {
@@ -110,7 +133,4 @@ mod tests {
         let input_data = import_data(TEST_DATA);
         assert_eq!(24933642, answer_part2(input_data));
     }
-
-    #[test]
-    fn playground() {}
 }
