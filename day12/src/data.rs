@@ -1,8 +1,9 @@
-use std::{collections::HashMap, ops::Deref};
+use std::collections::HashMap;
 
 pub type Parsed = Vec<usize>;
 
-pub type Coordinate = (usize, usize);
+#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Coordinate(pub usize, pub usize);
 
 #[derive(Debug, Clone)]
 pub struct Map {
@@ -22,19 +23,19 @@ impl Map {
             .collect::<HashMap<char, usize>>();
 
         let mut grid: Vec<Vec<usize>> = vec![];
-        let mut start: Coordinate = (0, 0);
-        let mut goal: Coordinate = (0, 0);
+        let mut start: Coordinate = Coordinate(0, 0);
+        let mut goal: Coordinate = Coordinate(0, 0);
 
         for (y_coordinate, line) in data.lines().enumerate() {
             let mut letters: Vec<usize> = vec![];
             for (x_coordinate, character) in line.chars().enumerate() {
                 match character {
                     'S' => {
-                        start = (x_coordinate, y_coordinate);
+                        start = Coordinate(x_coordinate, y_coordinate);
                         letters.push(*alphabet.get(&'a').expect("character not found in alphabet"));
                     }
                     'E' => {
-                        goal = (x_coordinate, y_coordinate);
+                        goal = Coordinate(x_coordinate, y_coordinate);
                         letters.push(*alphabet.get(&'z').expect("character not found in alphabet"));
                     }
                     any => {
@@ -73,7 +74,7 @@ mod tests {
     #[test]
     fn test_parsing() {
         let _map = Map::from_data(TEST_DATA);
-        println!("{:?}", _map);
+        // println!("{:?}", _map);
     }
 
     #[test]
