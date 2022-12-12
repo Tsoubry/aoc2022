@@ -1,7 +1,7 @@
 pub mod data;
 
 use crate::data::*;
-use pathfinding::prelude::bfs;
+use pathfinding::prelude::dijkstra;
 
 impl Map {
     fn find_value(&self, coordinate: Coordinate) -> usize {
@@ -57,14 +57,14 @@ impl Map {
 fn answer_part1(data: &str) -> usize {
     let map = Map::from_data(data);
 
-    let result = bfs(
+    let result = dijkstra(
         &map.start, 
-        |p| map.find_successors(p), 
+        |p| map.find_successors(p).into_iter().map(|x| (x, 1)), 
         |p| *p == map.goal);
 
     println!("{:?}", &result);
 
-    result.expect("no path found").len() - 1
+    result.expect("no path found").1 
 }
 
 // fn answer_part2(data: Vec<Parsed>) -> i64 {
