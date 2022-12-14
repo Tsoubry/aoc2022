@@ -57,7 +57,9 @@ impl<const N: usize> Grid<N> {
         if extra_depth {
             self.max_depth += 2;
 
-            // todo: add extra line to grid
+            for x_pos in 0..N {
+                self.grid[self.max_depth][x_pos] = 1;
+            }
         };
 
         println!("max depth: {}", self.max_depth);
@@ -68,8 +70,23 @@ impl<const N: usize> Grid<N> {
         let mut total_units: usize = 0;
 
         loop {
-            if current_y > self.max_depth {
-                break;
+            // Strategy selection
+            if extra_depth {
+                let top_row = self
+                    .grid
+                    .get(STARTING_POINT.1 + 1)
+                    .unwrap()
+                    .get((STARTING_POINT.0 - 1)..(STARTING_POINT.0 + 2))
+                    .unwrap();
+
+                if (current_x, current_y) == STARTING_POINT && top_row == &[1, 1, 1] {
+                    total_units += 1;
+                    break;
+                }
+            } else {
+                if current_y > self.max_depth {
+                    break;
+                }
             }
 
             if self
@@ -127,15 +144,17 @@ fn answer_part1(data: Vec<Path>) -> usize {
     grid.simulate(false)
 }
 
-// fn answer_part2(data: Vec<Parsed>) -> i64 {
+fn answer_part2(data: Vec<Path>) -> usize {
+    let mut grid = Grid::<1000>::from_paths(data);
 
-// }
+    grid.simulate(true)
+}
 
 fn main() {
     let input_data = import_data(include_str!("../input.txt"));
 
     println!("Answer of part 1 is: {}", answer_part1(input_data.clone()));
-    // println!("Answer of part 2 is: {}", answer_part2(input_data));
+    println!("Answer of part 2 is: {}", answer_part2(input_data));
 }
 
 #[cfg(test)]
@@ -158,11 +177,6 @@ mod tests {
             20,
             grid.grid.iter().flatten().map(|x| *x as u32).sum::<u32>()
         );
-
-        // println!("Grid:");
-        // for row in &grid.grid[0..10] {
-        //     println!("{:?}", row.get(494..504));
-        // };
     }
 
     #[test]
@@ -171,9 +185,9 @@ mod tests {
         assert_eq!(24, answer_part1(input_data));
     }
 
-    // #[test]
-    // fn test_answer2() {
-    //     let input_data = import_data(TEST_DATA);
-    //     assert_eq!(, answer_part2(input_data));
-    // }
+    #[test]
+    fn test_answer2() {
+        let input_data = import_data(TEST_DATA);
+        assert_eq!(93, answer_part2(input_data));
+    }
 }
