@@ -2,7 +2,7 @@ pub mod data;
 
 use std::collections::HashMap;
 
-use pathfinding::prelude::dijkstra;
+use pathfinding::prelude::astar;
 
 #[macro_use]
 extern crate derive_new;
@@ -53,6 +53,13 @@ fn move_to_next(mut valve: ValvePath) -> (ValvePath, isize) {
     (valve, 0)
 }
 
+fn heuristic(current_path: &ValvePath, map: &HashMap<String, Valve>) -> isize {
+
+    -1653
+}
+
+
+
 fn successors(valve_path: &ValvePath, map: &HashMap<String, Valve>) -> Vec<(ValvePath, isize)> {
     let tunnel_iter = valve_path.tunnels.iter().map(|tunnel| {
         ValvePath::from_valve(
@@ -79,15 +86,23 @@ fn answer_part1(data: HashMap<String, Valve>) -> isize {
     let start_valve =
         ValvePath::from_valve(data.get(&"AA".to_string()).unwrap().clone(), 30, vec![]);
 
-    let result = dijkstra(
+    let result = astar(
         &start_valve,
         |valve| successors(valve, &data),
+        |valve| heuristic(valve, &data),
         |valve| valve.minutes_left == 0, // || valve.minutes_left == 1
     );
 
-    println!("{:?}", &result);
+    // println!("{:?}", &result.0.iter().map(|res| res.1.1));
+
+    print!("{:?}", &result);
+
+    // let best_cost: isize = result.0.into_iter().map(|res| res.1.1).min().unwrap();
 
     result.unwrap().1
+
+
+    // best_cost
 }
 
 // fn answer_part2(data: HashMap<String, Valve>) -> usize {
