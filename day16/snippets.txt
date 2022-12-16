@@ -1,0 +1,15 @@
+#[macro_use]
+extern crate derive_new;
+
+use strum_macros::EnumString;
+use std::str::FromStr;
+
+
+
+#![allow(non_camel_case_types)]
+
+
+
+use regex::Regex;
+let re = Regex::new(r"^\$?\s?(ls|cd|dir)\s?(.*)").unwrap();
+ re.captures(&line) 
