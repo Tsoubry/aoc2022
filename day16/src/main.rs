@@ -9,20 +9,23 @@ extern crate derive_new;
 
 use crate::data::*;
 
-
-#[derive(new, Debug, Clone, Hash)]
+#[derive(new, Debug, Clone, Hash, Eq)]
 pub struct ValvePath {
     pub current: String,
-    pub flow_rate: usize,
+    pub flow_rate: isize,
     pub tunnels: Vec<String>,
     pub minutes_left: usize,
     pub opened_valves: Vec<String>,
 }
 
+impl PartialEq for ValvePath {
+    fn eq(&self, other: &Self) -> bool {
+        self.current == other.current && self.minutes_left == other.minutes_left
+    }
+}
+
 impl ValvePath {
-
     fn from_valve(valve: Valve, minutes_left: usize, opened_valves: Vec<String>) -> Self {
-
         Self {
             current: valve.name,
             flow_rate: valve.flow_rate,
@@ -30,70 +33,51 @@ impl ValvePath {
             minutes_left,
             opened_valves,
         }
-
     }
-
 }
 
+fn open_valve(mut valve: ValvePath) -> (ValvePath, isize) {
+    let minutes_flowing = valve.minutes_left - 1;
 
-#[derive(new, Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Score {
-    pub minutes: usize,
-    pub total_flow: usize,
-    pub opened_valves: Vec<String>,
+    let add_score = valve.flow_rate.checked_neg().unwrap() * minutes_flowing as isize;
+
+    valve.minutes_left -= 2;
+    valve.opened_valves.push(valve.current.clone());
+
+    (valve, add_score)
 }
 
-fn open_valve(valve: &Valve, score: &Score) -> Score {
-    let minutes_flowing = score.minutes.checked_sub(1).unwrap_or(0);
+fn move_to_next(mut valve: ValvePath) -> (ValvePath, isize) {
+    valve.minutes_left -= 1;
 
-    let new_flow = valve.flow_rate * minutes_flowing;
-
-    let mut opened_valves = score.opened_valves.clone();
-    opened_valves.push(valve.name.clone());
-
-    Score::new(minutes_flowing.checked_sub(1).unwrap_or(0), score.total_flow + new_flow, opened_valves)
+    (valve, 0)
 }
 
-fn move_to_next(valve: &Valve, score: &Score) -> Score {
-    Score::new(score.minutes.checked_sub(1).unwrap_or(0), score.total_flow, score.opened_valves.clone())
-}
-
-fn successors(
-    valve_path: &ValvePath,
-    map: &HashMap<String, Valve>,
-) -> Vec<(ValvePath, usize)> {
-    let tunnel_iter = valve
-        .tunnels
-        .iter()
-        .map(|tunnel| (map.get(tunnel).expect("tunnel not found in map").clone()));
+fn successors(valve_path: &ValvePath, map: &HashMap<String, Valve>) -> Vec<(ValvePath, isize)> {
+    let tunnel_iter = valve_path.tunnels.iter().map(|tunnel| {
+        ValvePath::from_valve(
+            map.get(tunnel).expect("tunnel not found in map").clone(),
+            valve_path.minutes_left,
+            valve_path.opened_valves.clone(),
+        )
+    });
 
     let mut opened_valves_option: Vec<_> = tunnel_iter
         .clone()
-        .filter(|valve| !score.opened_valves.contains(&valve.name))
-        .map(|valve| {
-            let updated_score = open_valve(&valve, score);
-            (valve, updated_score)
-        })
+        .filter(|valve| !valve_path.opened_valves.contains(&valve.current))
+        .map(|valve| open_valve(valve))
         .collect();
 
-    let move_to_next_option: Vec<_> = tunnel_iter
-        .map(|valve| {
-            let updated_score = move_to_next(&valve, score);
-            (valve, updated_score)
-        })
-        .collect();
+    let move_to_next_option: Vec<_> = tunnel_iter.map(|valve| move_to_next(valve)).collect();
 
     opened_valves_option.extend(move_to_next_option);
 
     opened_valves_option
 }
 
-fn calculate_total_flow(path: Vec<(Valve, Score)>) -> usize {
-    path.last().unwrap().1.total_flow
-}
-
-fn answer_part1(data: HashMap<String, Valve>) -> usize {
-    let start_valve = ValvePath::from_valve(data.get(&"AA".to_string()).unwrap().clone(), 30, vec![]);
+fn answer_part1(data: HashMap<String, Valve>) -> isize {
+    let start_valve =
+        ValvePath::from_valve(data.get(&"AA".to_string()).unwrap().clone(), 30, vec![]);
 
     let result = dijkstra(
         &start_valve,
@@ -101,9 +85,9 @@ fn answer_part1(data: HashMap<String, Valve>) -> usize {
         |valve| valve.minutes_left == 0, // || valve.minutes_left == 1
     );
 
-    // println!("{:?}", &result);
+    println!("{:?}", &result);
 
-    calculate_total_flow(result.unwrap())
+    result.unwrap().1
 }
 
 // fn answer_part2(data: HashMap<String, Valve>) -> usize {
@@ -126,7 +110,7 @@ mod tests {
     #[test]
     fn test_answer1() {
         let input_data = import_data(TEST_DATA);
-        assert_eq!(1651, answer_part1(input_data));
+        assert_eq!(-1651, answer_part1(input_data));
     }
 
     // #[test]

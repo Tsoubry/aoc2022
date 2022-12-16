@@ -6,7 +6,7 @@ use regex::Regex;
 #[derive(new, Debug, Clone)]
 pub struct Valve {
     pub name: String,
-    pub flow_rate: usize,
+    pub flow_rate: isize,
     pub tunnels: Vec<String>,
 }
 
@@ -39,7 +39,7 @@ pub fn parse(line: &str) -> (String, Valve) {
         .expect("first capture group")
         .as_str()
         .to_string();
-    let flow: usize = caps
+    let flow: isize = caps
         .get(2)
         .expect("second capture group")
         .as_str()
