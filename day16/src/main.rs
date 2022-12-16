@@ -2,14 +2,41 @@ pub mod data;
 
 use std::collections::HashMap;
 
-use pathfinding::directed::dfs::dfs;
+use pathfinding::prelude::dijkstra;
 
 #[macro_use]
 extern crate derive_new;
 
 use crate::data::*;
 
-#[derive(new, Debug, Clone, PartialEq, Eq)]
+
+#[derive(new, Debug, Clone, Hash)]
+pub struct ValvePath {
+    pub current: String,
+    pub flow_rate: usize,
+    pub tunnels: Vec<String>,
+    pub minutes_left: usize,
+    pub opened_valves: Vec<String>,
+}
+
+impl ValvePath {
+
+    fn from_valve(valve: Valve, minutes_left: usize, opened_valves: Vec<String>) -> Self {
+
+        Self {
+            current: valve.name,
+            flow_rate: valve.flow_rate,
+            tunnels: valve.tunnels,
+            minutes_left,
+            opened_valves,
+        }
+
+    }
+
+}
+
+
+#[derive(new, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Score {
     pub minutes: usize,
     pub total_flow: usize,
@@ -32,9 +59,9 @@ fn move_to_next(valve: &Valve, score: &Score) -> Score {
 }
 
 fn successors(
-    (valve, score): (&Valve, &Score),
+    valve_path: &ValvePath,
     map: &HashMap<String, Valve>,
-) -> Vec<(Valve, Score)> {
+) -> Vec<(ValvePath, usize)> {
     let tunnel_iter = valve
         .tunnels
         .iter()
@@ -66,12 +93,12 @@ fn calculate_total_flow(path: Vec<(Valve, Score)>) -> usize {
 }
 
 fn answer_part1(data: HashMap<String, Valve>) -> usize {
-    let start_valve = data.get(&"AA".to_string()).unwrap().clone(); // should be in the map
+    let start_valve = ValvePath::from_valve(data.get(&"AA".to_string()).unwrap().clone(), 30, vec![]);
 
-    let result = dfs(
-        (start_valve, Score::new(30, 0, vec![])),
-        |(valve, score)| successors((valve, score), &data),
-        |(_, score)| score.minutes == 0 && score.total_flow == 1651,
+    let result = dijkstra(
+        &start_valve,
+        |valve| successors(valve, &data),
+        |valve| valve.minutes_left == 0, // || valve.minutes_left == 1
     );
 
     // println!("{:?}", &result);

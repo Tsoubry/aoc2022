@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hash::Hash;
 
 use regex::Regex;
 
@@ -16,6 +17,12 @@ impl PartialEq for Valve {
 }
 
 impl Eq for Valve {}
+
+impl Hash for Valve {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.name.hash(state)
+    }
+}
 
 pub fn import_data(data: &str) -> HashMap<String, Valve> {
     data.lines().map(|line| parse(line)).collect()
