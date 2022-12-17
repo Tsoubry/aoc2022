@@ -30,6 +30,6 @@ mod tests {
     #[test]
     fn test_parsing() {
         let pattern = import_data(TEST_DATA);
-        println!("{:?}", pattern);
+        // println!("{:?}", pattern);
     }
 }
