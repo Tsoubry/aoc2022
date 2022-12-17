@@ -164,6 +164,7 @@ impl Grid {
         is_at_bottom
     }
 
+    #[inline(never)]
     fn print(&self) {
         let start = self.highest_rock.checked_sub(5).unwrap_or(0);
         let end = self.highest_rock + 7;
@@ -175,8 +176,8 @@ impl Grid {
         println!();
     }
 
+    #[inline]
     fn reset_grid(&mut self) -> usize {
-
         let keep_end = self.highest_rock;
         let keep_start = keep_end - 500;
 
@@ -185,9 +186,7 @@ impl Grid {
         let mut new_grid = [[0; 7]; GRID_HEIGHT];
 
         for (pos, row) in slice_to_keep {
-
             new_grid[pos] = *row;
-
         }
 
         self.grid = new_grid;
@@ -196,12 +195,10 @@ impl Grid {
         self.highest_rock = self.calculate_highest_rock();
 
         keep_start
-
     }
 }
 
 fn simulate(data: Vec<Direction>, total_rocks: usize, careful: bool) -> usize {
-
     let mut total_height: usize = 0;
 
     let rocks: [Rock; 5] = [Rock::Dash, Rock::Plus, Rock::Corner, Rock::Pipe, Rock::Cube];
@@ -250,27 +247,21 @@ fn simulate(data: Vec<Direction>, total_rocks: usize, careful: bool) -> usize {
             current_rock_pos += 1
         };
 
-
         if careful {
-
             if grid.highest_rock >= (GRID_HEIGHT - 500) {
-
                 let height_to_add = grid.reset_grid();
 
                 total_height += height_to_add;
 
                 println!("Total height: {}", &total_height);
-
             }
-
         }
-
     }
 
     total_height += grid.highest_rock;
 
     if careful {
-        return total_height
+        return total_height;
     }
 
     grid.highest_rock
@@ -280,15 +271,12 @@ fn answer_part1(data: Vec<Direction>) -> usize {
     let total_rocks = 2022;
 
     simulate(data, total_rocks, false)
-
 }
 
 fn answer_part2(data: Vec<Direction>) -> usize {
-
     let total_rocks: usize = 1_000_000_000_000;
-    
-    simulate(data, total_rocks, true)
 
+    simulate(data, total_rocks, true)
 }
 
 fn main() {
@@ -315,5 +303,4 @@ mod tests {
         let input_data = import_data(TEST_DATA);
         assert_eq!(1_514_285_714_288, answer_part2(input_data));
     }
-
 }
