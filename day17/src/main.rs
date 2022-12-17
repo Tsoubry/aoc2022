@@ -4,8 +4,6 @@ use itertools::Itertools;
 
 use crate::data::*;
 
-const TOTAL_ROCKS: usize = 2022;
-
 const DASH_PARTS: [(usize, usize); 4] = [(0, 0), (1, 0), (2, 0), (3, 0)];
 const PLUS_PARTS: [(usize, usize); 5] = [(0, 1), (1, 0), (1, 1), (1, 2), (2, 1)];
 const CORNER_PARTS: [(usize, usize); 5] = [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)];
@@ -172,7 +170,8 @@ impl Grid {
     }
 }
 
-fn answer_part1(data: Vec<Direction>) -> usize {
+fn calculate(data: Vec<Direction>, total_rocks: usize) -> usize {
+
     let rocks: [Rock; 5] = [Rock::Dash, Rock::Plus, Rock::Corner, Rock::Pipe, Rock::Cube];
     let mut current_rock_pos: usize = 0;
 
@@ -184,7 +183,7 @@ fn answer_part1(data: Vec<Direction>) -> usize {
 
     let mut rocks_fallen: usize = 0;
 
-    while rocks_fallen < TOTAL_ROCKS {
+    while rocks_fallen < total_rocks {
         let current_rock = rocks[current_rock_pos];
         let mut rock_parts = current_rock.parts(grid.highest_rock);
 
@@ -223,9 +222,20 @@ fn answer_part1(data: Vec<Direction>) -> usize {
     grid.highest_rock
 }
 
-// fn answer_part2(data: Vec<Parsed>) -> i64 {
+fn answer_part1(data: Vec<Direction>) -> usize {
+    let total_rocks = 2022;
 
-// }
+    calculate(data, total_rocks)
+
+}
+
+fn answer_part2(data: Vec<Direction>) -> usize {
+
+    let total_rocks: usize = 1_000_000_000_000;
+    
+    calculate(data, total_rocks)
+
+}
 
 fn main() {
     let input_data = import_data(include_str!("../input.txt"));
@@ -249,9 +259,7 @@ mod tests {
     // #[test]
     // fn test_answer2() {
     //     let input_data = import_data(TEST_DATA);
-    //     assert_eq!(, answer_part2(input_data));
+    //     assert_eq!(1_514_285_714_288, answer_part2(input_data));
     // }
 
-    #[test]
-    fn playground() {}
 }
