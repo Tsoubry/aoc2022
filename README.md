@@ -23,3 +23,7 @@ Found I had to use Graph algorithm like Dijkstra, or A*.
 - Pathfinding crate: decent option, but a bit too limited for customized graphs
 - Petgraph crate: seems more customizeable but also more complex, especially if you have no experience with it.
 - Finding a heuristic for A* was going to be very hard
+
+# Day 17
+Part 2 unsolved.
+- the simulation is cyclic. Wasn't very clear to me on how to implement the solution.
