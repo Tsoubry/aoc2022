@@ -59,7 +59,7 @@ impl Default for Grid {
 
 impl Grid {
     #[inline(always)]
-    fn move_direction(&self, rock: Vec<(usize, usize)>, direction: &Direction) {
+    fn move_direction(&self, rock: &mut Vec<(usize, usize)>, direction: &Direction) {
         // todo: needs to keep outside boundaries of fallen rocks as well
         let x_modifier: isize = match direction {
             Direction::Left => {
@@ -78,7 +78,7 @@ impl Grid {
             }
         };
 
-        // todo: mut
+        // todo: make changes to rock
     }
 
     fn move_down(&self, rock: &mut Vec<(usize, usize)>) {
@@ -90,7 +90,7 @@ impl Grid {
     }
 
     #[inline(always)]
-    fn sense_bottom_and_keep(&mut self, rock: Vec<(usize, usize)>) -> bool {
+    fn sense_bottom_and_keep(&mut self, rock: &Vec<(usize, usize)>) -> bool {
 
         // min max calc
 
@@ -121,14 +121,15 @@ fn answer_part1(data: Vec<Direction>) -> usize {
 
         loop {
 
-            let current_direction = pattern.get(current_pattern_pos).expect("pattern position out of bounds");
-
             // 1. move direction
             // 2. check if down, => keep in grid
             // 3. move down
 
-            // if stuck: rocks fallen += 1, break
-            if grid.sense_bottom_and_keep(rock_parts) {
+            let current_direction = pattern.get(current_pattern_pos).expect("pattern position out of bounds");
+
+            grid.move_direction(&mut rock_parts, current_direction);
+
+            if grid.sense_bottom_and_keep(&rock_parts) {
                 rocks_fallen += 1;
                 break;
             }
@@ -138,7 +139,6 @@ fn answer_part1(data: Vec<Direction>) -> usize {
             } else {
                 current_pattern_pos += 1
             };
-
 
         }
 
