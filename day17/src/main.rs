@@ -1,8 +1,5 @@
 pub mod data;
 
-#[macro_use]
-extern crate derive_new;
-
 use crate::data::*;
 
 const TOTAL_ROCKS: usize = 2022;
@@ -62,7 +59,8 @@ impl Default for Grid {
 
 impl Grid {
     #[inline(always)]
-    fn move_rock(rock: Vec<(usize, usize)>, direction: Direction) -> Vec<(usize, usize)> {
+    fn move_direction(&self, rock: Vec<(usize, usize)>, direction: &Direction) {
+        // todo: needs to keep outside boundaries of fallen rocks as well
         let x_modifier: isize = match direction {
             Direction::Left => {
                 if rock.first().unwrap().0 == 0 {
@@ -80,48 +78,68 @@ impl Grid {
             }
         };
 
-        rock.into_iter()
-            .map(|(x, y)| {
-                let new_x = (x as isize + x_modifier) as usize;
-                (new_x, y - 1)
-            })
-            .collect()
+        // todo: mut
+    }
+
+    fn move_down(&self, rock: &mut Vec<(usize, usize)>) {
+
+        rock
+        .iter_mut()
+        .for_each(|(_, y)| { *y -= 1 });
+
     }
 
     #[inline(always)]
-    fn sense_colision(&self, rock: &[(usize, usize)]) -> bool {
-        todo!()
+    fn sense_bottom_and_keep(&mut self, rock: Vec<(usize, usize)>) -> bool {
 
         // min max calc
 
         // also check for floor!
+
+        // also update highest rock
+
+        true
     }
 
-    #[inline(always)]
-    fn keep_in_grid(&mut self, rock: Vec<(usize, usize)>) {
-        todo!()
-    }
 }
 
 fn answer_part1(data: Vec<Direction>) -> usize {
     let rocks: [Rock; 5] = [Rock::Dash, Rock::Plus, Rock::Corner, Rock::Pipe, Rock::Cube];
+    let mut current_rock_pos: usize = 0;
+
+    let pattern = data;
+    let pattern_size = pattern.len();
+    let mut current_pattern_pos: usize = 0;
 
     let mut grid = Grid::default();
-
-    let mut current_rock_pos: usize = 0;
 
     let mut rocks_fallen: usize = 0;
 
     while rocks_fallen < TOTAL_ROCKS {
         let current_rock = rocks[current_rock_pos];
+        let mut rock_parts = current_rock.parts(grid.highest_rock);
 
         loop {
-            // push rock to bottom
 
-            // move first with direction
+            let current_direction = pattern.get(current_pattern_pos).expect("pattern position out of bounds");
+
+            // 1. move direction
+            // 2. check if down, => keep in grid
+            // 3. move down
 
             // if stuck: rocks fallen += 1, break
-            break;
+            if grid.sense_bottom_and_keep(rock_parts) {
+                rocks_fallen += 1;
+                break;
+            }
+
+            if current_pattern_pos == pattern_size {
+                current_pattern_pos = 0
+            } else {
+                current_pattern_pos += 1
+            };
+
+
         }
 
         if current_rock_pos == 4 {
@@ -141,7 +159,7 @@ fn answer_part1(data: Vec<Direction>) -> usize {
 fn main() {
     let input_data = import_data(include_str!("../input.txt"));
 
-    // println!("Answer of part 1 is: {}", answer_part1(input_data.clone()));
+    println!("Answer of part 1 is: {}", answer_part1(input_data.clone()));
     // println!("Answer of part 2 is: {}", answer_part2(input_data));
 }
 
@@ -151,11 +169,11 @@ mod tests {
     use super::*;
     use crate::data::TEST_DATA;
 
-    // #[test]
-    // fn test_answer1() {
-    //     let input_data = import_data(TEST_DATA);
-    //     assert_eq!(3068, answer_part1(input_data));
-    // }
+    #[test]
+    fn test_answer1() {
+        let input_data = import_data(TEST_DATA);
+        assert_eq!(3068, answer_part1(input_data));
+    }
 
     // #[test]
     // fn test_answer2() {
