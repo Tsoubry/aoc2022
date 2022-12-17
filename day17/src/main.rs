@@ -1,5 +1,7 @@
 pub mod data;
 
+use itertools::Itertools;
+
 use crate::data::*;
 
 const TOTAL_ROCKS: usize = 2022;
@@ -9,6 +11,8 @@ const PLUS_PARTS: [(usize, usize); 5] = [(0, 1), (1, 0), (1, 1), (1, 2), (2, 1)]
 const CORNER_PARTS: [(usize, usize); 5] = [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)];
 const PIPE_PARTS: [(usize, usize); 4] = [(0, 0), (0, 1), (0, 2), (0, 3)];
 const CUBE_PARTS: [(usize, usize); 4] = [(0, 0), (1, 0), (0, 1), (1, 1)];
+
+const EMPTY_ROW: [u8; 7] = [0; 7];
 
 #[derive(Clone, Copy)]
 enum Rock {
@@ -61,16 +65,68 @@ impl Grid {
     #[inline(always)]
     fn move_direction(&self, rock: &mut Vec<(usize, usize)>, direction: &Direction) {
         // todo: needs to keep outside boundaries of fallen rocks as well
+
+        // for all leftmost/rightmost items: check rock boundaries + wall boundaries
+        // let x_modifier: isize = match direction {
+        //     Direction::Left => {
+        //         if rock.first().unwrap().0 == 0 {
+        //             0
+        //         } else {
+        //             -1
+        //         }
+        //     }
+        //     Direction::Right => {
+        //         if rock.last().unwrap().1 == 6 {
+        //             0
+        //         } else {
+        //             1
+        //         }
+        //     }
+        // };
+
         let x_modifier: isize = match direction {
             Direction::Left => {
-                if rock.first().unwrap().0 == 0 {
+                let group = rock.iter().group_by(|(_, y)| y);
+
+                let mut leftmost_parts = group.into_iter().map(|group_item| {
+                    (
+                        *group_item.0,
+                        group_item
+                            .1
+                            .map(|group| group.0)
+                            .min()
+                            .expect("min on x should always work"),
+                    )
+                });
+
+                let is_leftmost = leftmost_parts.any(|part| {
+                    part.0 == 0 || self.grid[part.1][part.0.checked_sub(1).unwrap_or(0)] == 1u8
+                });
+
+                if is_leftmost {
                     0
                 } else {
                     -1
                 }
             }
             Direction::Right => {
-                if rock.last().unwrap().1 == 6 {
+                let group = rock.iter().group_by(|(_, y)| y);
+
+                let mut rightmost_parts = group.into_iter().map(|group_item| {
+                    (
+                        *group_item.0,
+                        group_item
+                            .1
+                            .map(|group| group.0)
+                            .max()
+                            .expect("max on x should always work"),
+                    )
+                });
+
+                let is_rightmost = rightmost_parts
+                    .any(|part| part.0 == 6 || self.grid[part.1][(part.0 + 1).min(6)] == 1u8);
+
+                if is_rightmost {
                     0
                 } else {
                     1
@@ -78,29 +134,49 @@ impl Grid {
             }
         };
 
-        // todo: make changes to rock
+        rock.iter_mut()
+            .for_each(|(x, _)| *x = (*x as isize + x_modifier) as usize);
     }
 
     fn move_down(&self, rock: &mut Vec<(usize, usize)>) {
+        rock.iter_mut().for_each(|(_, y)| *y -= 1);
+    }
 
-        rock
-        .iter_mut()
-        .for_each(|(_, y)| { *y -= 1 });
+    fn calculate_highest_rock(&self) -> usize {
+        for height in 1..=self.grid.len() {
+            if self.grid[height] == EMPTY_ROW {
+                return height - 1;
+            }
+        }
 
+        0
     }
 
     #[inline(always)]
     fn sense_bottom_and_keep(&mut self, rock: &Vec<(usize, usize)>) -> bool {
+        let group = rock.iter().group_by(|(x, _)| x);
 
-        // min max calc
+        let mut bottom_parts = group.into_iter().map(|x| {
+            (
+                *x.0,
+                x.1.map(|group| group.1)
+                    .min()
+                    .expect("min should always work"),
+            )
+        });
 
-        // also check for floor!
+        let is_at_bottom =
+            bottom_parts.any(|part| part.1 - 1 == 0 || self.grid[part.1 - 1][part.0] == 1u8);
+        if is_at_bottom {
+            for (x, y) in rock {
+                self.grid[*y][*x] = 1;
+            }
 
-        // also update highest rock
+            self.highest_rock = self.calculate_highest_rock();
+        }
 
-        true
+        is_at_bottom
     }
-
 }
 
 fn answer_part1(data: Vec<Direction>) -> usize {
@@ -120,12 +196,13 @@ fn answer_part1(data: Vec<Direction>) -> usize {
         let mut rock_parts = current_rock.parts(grid.highest_rock);
 
         loop {
-
             // 1. move direction
             // 2. check if down, => keep in grid
             // 3. move down
 
-            let current_direction = pattern.get(current_pattern_pos).expect("pattern position out of bounds");
+            let current_direction = pattern
+                .get(current_pattern_pos)
+                .expect("pattern position out of bounds");
 
             grid.move_direction(&mut rock_parts, current_direction);
 
@@ -134,12 +211,13 @@ fn answer_part1(data: Vec<Direction>) -> usize {
                 break;
             }
 
+            grid.move_down(&mut rock_parts);
+
             if current_pattern_pos == pattern_size {
                 current_pattern_pos = 0
             } else {
                 current_pattern_pos += 1
             };
-
         }
 
         if current_rock_pos == 4 {
