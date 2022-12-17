@@ -64,7 +64,6 @@ impl Default for Grid {
 impl Grid {
     #[inline(always)]
     fn move_direction(&self, rock: &mut Vec<(usize, usize)>, direction: &Direction) {
-
         let x_modifier: isize = match direction {
             Direction::Left => {
                 let group = rock.iter().group_by(|(_, y)| y);
@@ -76,7 +75,7 @@ impl Grid {
                             .map(|group| group.0)
                             .min()
                             .expect("min on x should always work"),
-                            *group_item.0,
+                        *group_item.0,
                     )
                 });
 
@@ -93,20 +92,6 @@ impl Grid {
             Direction::Right => {
                 let group = rock.iter().group_by(|(_, y)| y);
 
-                // testing
-                // let mut t1: Vec<_> = group.into_iter().map(|group_item| {
-                //     (
-                //         group_item
-                //             .1
-                //             .map(|group| group.0)
-                //             .max()
-                //             .expect("max on x should always work"),
-                //             *group_item.0,
-                //     )
-                // }).collect();
-
-                // println!("thing {:?}", &t1);
-
                 let mut rightmost_parts = group.into_iter().map(|group_item| {
                     (
                         group_item
@@ -114,14 +99,12 @@ impl Grid {
                             .map(|group| group.0)
                             .max()
                             .expect("max on x should always work"),
-                            *group_item.0,
+                        *group_item.0,
                     )
                 });
 
                 let is_rightmost = rightmost_parts
                     .any(|part| part.0 == 6 || self.grid[part.1][(part.0 + 1).min(6)] == 1u8);
-
-                
 
                 if is_rightmost {
                     0
@@ -156,7 +139,9 @@ impl Grid {
         let mut bottom_parts = group.into_iter().map(|group_item| {
             (
                 *group_item.0,
-                group_item.1.map(|group| group.1)
+                group_item
+                    .1
+                    .map(|group| group.1)
                     .min()
                     .expect("min should always work"),
             )
@@ -176,20 +161,15 @@ impl Grid {
     }
 
     fn print(&self) {
-
         let start = self.highest_rock.checked_sub(5).unwrap_or(0);
         let end = self.highest_rock + 7;
 
-        for row in start..=end {
-
+        for row in (start..=end).rev() {
             println!("{:?}", self.grid[row]);
-
         }
 
         println!();
-
     }
-
 }
 
 fn answer_part1(data: Vec<Direction>) -> usize {
@@ -219,8 +199,11 @@ fn answer_part1(data: Vec<Direction>) -> usize {
 
             grid.move_direction(&mut rock_parts, current_direction);
 
-            // grid.print(); 
-            // println!("{:?}", &rock_parts);
+            if current_pattern_pos == pattern_size - 1 {
+                current_pattern_pos = 0
+            } else {
+                current_pattern_pos += 1
+            };
 
             if grid.sense_bottom_and_keep(&rock_parts) {
                 rocks_fallen += 1;
@@ -228,12 +211,6 @@ fn answer_part1(data: Vec<Direction>) -> usize {
             }
 
             grid.move_down(&mut rock_parts);
-
-            if current_pattern_pos == pattern_size - 1 {
-                current_pattern_pos = 0
-            } else {
-                current_pattern_pos += 1
-            };
         }
 
         if current_rock_pos == 4 {
@@ -241,7 +218,6 @@ fn answer_part1(data: Vec<Direction>) -> usize {
         } else {
             current_rock_pos += 1
         };
-
     }
 
     grid.highest_rock
