@@ -1,4 +1,3 @@
-
 #[derive(Debug, Clone, Copy)]
 pub enum Direction {
     Left,
@@ -12,13 +11,13 @@ pub fn import_data(data: &str) -> Vec<Direction> {
 }
 
 pub fn parse(line: &str) -> Vec<Direction> {
-    line
-    .chars()
-    .map(|character| match character {
-        '<' => Direction::Left,
-        '>' => Direction::Right,
-        _ => panic!("found character that was not expected.")
-    }).collect()
+    line.chars()
+        .map(|character| match character {
+            '<' => Direction::Left,
+            '>' => Direction::Right,
+            _ => panic!("found character that was not expected."),
+        })
+        .collect()
 }
 
 pub const TEST_DATA: &str = r#">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>

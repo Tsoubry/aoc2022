@@ -5,7 +5,6 @@ extern crate derive_new;
 
 use crate::data::*;
 
-
 const TOTAL_ROCKS: usize = 2022;
 
 const DASH_PARTS: [(usize, usize); 4] = [(0, 0), (1, 0), (2, 0), (3, 0)];
@@ -14,63 +13,38 @@ const CORNER_PARTS: [(usize, usize); 5] = [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2
 const PIPE_PARTS: [(usize, usize); 4] = [(0, 0), (0, 1), (0, 2), (0, 3)];
 const CUBE_PARTS: [(usize, usize); 4] = [(0, 0), (1, 0), (0, 1), (1, 1)];
 
-trait Rock: Copy + Clone {
+#[derive(Clone, Copy)]
+enum Rock {
+    Dash,
+    Plus,
+    Corner,
+    Pipe,
+    Cube,
+}
 
+impl Rock {
     #[inline(always)]
-    fn modify_rock_position(&self, parts: &[(usize, usize)], highest_rock: usize) -> Vec<(usize, usize)> {
-        parts.iter().map(|pos| (pos.0 + 2, pos.1 + 4 + highest_rock)).collect()
+    fn modify_rock_position(
+        &self,
+        parts: &[(usize, usize)],
+        highest_rock: usize,
+    ) -> Vec<(usize, usize)> {
+        parts
+            .iter()
+            .map(|pos| (pos.0 + 2, pos.1 + 4 + highest_rock))
+            .collect()
     }
 
-    fn parts(&self, highest_rock: usize)-> Vec<(usize, usize)>;
-}
-
-#[derive(new, Copy, Clone)]
-struct Dash {}
-#[derive(new, Copy, Clone)]
-struct Plus {}
-#[derive(new, Copy, Clone)]
-struct Corner {}
-#[derive(new, Copy, Clone)]
-struct Pipe {}
-#[derive(new, Copy, Clone)]
-struct Cube {}
-
-
-impl Rock for Dash {
-    #[inline]
-    fn parts(&self, highest_rock: usize)-> Vec<(usize, usize)> {
-        self.modify_rock_position(&DASH_PARTS, highest_rock)
+    fn parts(&self, highest_rock: usize) -> Vec<(usize, usize)> {
+        match self {
+            Rock::Dash => self.modify_rock_position(&DASH_PARTS, highest_rock),
+            Rock::Plus => self.modify_rock_position(&PLUS_PARTS, highest_rock),
+            Rock::Corner => self.modify_rock_position(&CORNER_PARTS, highest_rock),
+            Rock::Pipe => self.modify_rock_position(&PIPE_PARTS, highest_rock),
+            Rock::Cube => self.modify_rock_position(&CUBE_PARTS, highest_rock),
+        }
     }
 }
-
-impl Rock for Plus {
-    #[inline]
-    fn parts(&self, highest_rock: usize)-> Vec<(usize, usize)> {
-        self.modify_rock_position(&PLUS_PARTS, highest_rock)
-    }
-}
-
-impl Rock for Corner {
-    #[inline]
-    fn parts(&self, highest_rock: usize)-> Vec<(usize, usize)> {
-        self.modify_rock_position(&CORNER_PARTS, highest_rock)
-    }
-}
-
-impl Rock for Pipe {
-    #[inline]
-    fn parts(&self, highest_rock: usize)-> Vec<(usize, usize)> {
-        self.modify_rock_position(&PIPE_PARTS, highest_rock)
-    }
-}
-
-impl Rock for Cube {
-    #[inline]
-    fn parts(&self, highest_rock: usize)-> Vec<(usize, usize)> {
-        self.modify_rock_position(&CUBE_PARTS, highest_rock)
-    }
-}
-
 
 struct Grid {
     pub grid: [[u8; 7]; 10000],
@@ -81,43 +55,42 @@ impl Default for Grid {
     fn default() -> Self {
         Self {
             grid: [[0; 7]; 10000],
-            highest_rock: 0
+            highest_rock: 0,
         }
     }
-
 }
 
 impl Grid {
-
     #[inline(always)]
     fn move_rock(rock: Vec<(usize, usize)>, direction: Direction) -> Vec<(usize, usize)> {
-
         let x_modifier: isize = match direction {
             Direction::Left => {
                 if rock.first().unwrap().0 == 0 {
                     0
-                } else { -1 }
-            }, 
+                } else {
+                    -1
+                }
+            }
             Direction::Right => {
                 if rock.last().unwrap().1 == 6 {
                     0
-                } else { 1 }
+                } else {
+                    1
+                }
             }
         };
 
-        rock
-        .into_iter()
-        .map(|(x, y)|{
-            let new_x = (x as isize + x_modifier) as usize;
-            (new_x, y - 1)
-        }).collect()
-
+        rock.into_iter()
+            .map(|(x, y)| {
+                let new_x = (x as isize + x_modifier) as usize;
+                (new_x, y - 1)
+            })
+            .collect()
     }
 
     #[inline(always)]
     fn sense_colision(&self, rock: &[(usize, usize)]) -> bool {
         todo!()
-
 
         // min max calc
 
@@ -128,32 +101,18 @@ impl Grid {
     fn keep_in_grid(&mut self, rock: Vec<(usize, usize)>) {
         todo!()
     }
-
-
 }
 
-
 fn answer_part1(data: Vec<Direction>) -> usize {
-
-    let rocks: [Box<dyn Rock>; 5] = [
-    Box::new(Dash::new()),
-    Box::new(Plus::new()),
-    Box::new(Corner::new()),
-    Box::new(Pipe::new()),
-    Box::new(Cube::new()),
-    ];
-
+    let rocks: [Rock; 5] = [Rock::Dash, Rock::Plus, Rock::Corner, Rock::Pipe, Rock::Cube];
 
     let mut grid = Grid::default();
-
 
     let mut current_rock_pos: usize = 0;
 
     let mut rocks_fallen: usize = 0;
-    
-    
-    while rocks_fallen < TOTAL_ROCKS {
 
+    while rocks_fallen < TOTAL_ROCKS {
         let current_rock = rocks[current_rock_pos];
 
         loop {
@@ -161,19 +120,16 @@ fn answer_part1(data: Vec<Direction>) -> usize {
 
             // move first with direction
 
-
             // if stuck: rocks fallen += 1, break
             break;
-
-
         }
 
-
-        if current_rock_pos == 4 { current_rock_pos = 0 } else { current_rock_pos += 1 };
-
-
+        if current_rock_pos == 4 {
+            current_rock_pos = 0
+        } else {
+            current_rock_pos += 1
+        };
     }
-
 
     grid.highest_rock
 }
@@ -208,7 +164,5 @@ mod tests {
     // }
 
     #[test]
-    fn playground() {
-        
-    }
+    fn playground() {}
 }
