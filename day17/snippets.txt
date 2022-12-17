@@ -1,15 +1,9 @@
-#[macro_use]
-extern crate derive_new;
+# notes
 
-use strum_macros::EnumString;
-use std::str::FromStr;
+First implementation was going to take 175 days
 
+after optimization of calculate_highest_rock function + lto,...: 114 hours
 
+(221365537)
+(215425496)
 
-#![allow(non_camel_case_types)]
-
-
-
-use regex::Regex;
-let re = Regex::new(r"^\$?\s?(ls|cd|dir)\s?(.*)").unwrap();
- re.captures(&line) 
