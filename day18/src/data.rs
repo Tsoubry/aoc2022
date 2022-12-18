@@ -1,14 +1,19 @@
-pub type Coordinate = (u8, u8, u8);
+pub type Coordinate = (i8, i8, i8);
 
 pub fn import_data(data: &str) -> Vec<Coordinate> {
     data.lines().map(|line| parse(line)).collect()
 }
 
 pub fn parse(line: &str) -> Coordinate {
-    let mut points = line.split_terminator(",").map(|point| point.parse::<u8>().unwrap());
+    let mut points = line
+        .split_terminator(",")
+        .map(|point| point.parse::<i8>().unwrap());
 
-    (points.next().unwrap(), points.next().unwrap(), points.next().unwrap())
-
+    (
+        points.next().unwrap(),
+        points.next().unwrap(),
+        points.next().unwrap(),
+    )
 }
 
 pub const TEST_DATA: &str = r#"2,2,2
