@@ -27,3 +27,13 @@ Found I had to use Graph algorithm like Dijkstra, or A*.
 # Day 17
 Part 2 unsolved.
 - the simulation is cyclic. Wasn't very clear to me on how to implement the solution.
+
+# Day 18
+Second part left unsolved.
+Solutions [Reddit](https://www.reddit.com/r/adventofcode/comments/zoqhvy/2022_day_18_solutions/)
+
+# Day 19
+I have no time to work on it. It also seemed quite difficult.
+Apparantly many people went for DFS/BFS approach. Some would propose to go for MIP (https://en.wikipedia.org/wiki/Linear_programming#Integer_unknowns)
+or constraint programming like ([Cpmpy](https://github.com/CPMpy/cpmpy)).
+All solutions: [Reddit](https://www.reddit.com/r/adventofcode/comments/zpihwi/2022_day_19_solutions/)
