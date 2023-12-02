@@ -7,9 +7,15 @@
 
 echo "🦀 DAY $1"
 
+DAY_NUMBER=$1
 AOCYEAR=2022
-URL=https://adventofcode.com/$AOCYEAR/day/$1
+URL=https://adventofcode.com/$AOCYEAR/day/$DAY_NUMBER
+DAY_FORMATTED=$DAY_NUMBER
 
-cargo generate --path template --name day$1
+if (($DAY_FORMATTED < 10)); then
+  DAY_FORMATTED="0$DAY_FORMATTED"
+fi
 
-curl -f $URL/input -H "cookie: $(cat cookie)" > day$1/input.txt 2> /dev/null
+cargo generate --path template --name day$DAY_FORMATTED
+
+curl -f $URL/input -H "cookie: $(cat cookie)" > day$DAY_FORMATTED/input.txt 2> /dev/null
