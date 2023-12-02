@@ -7,7 +7,7 @@ pub type AnswerDtype = i64;
 const PATTERN: &str = r"Blueprint (\d+): Each ore robot costs (\d+) ore. Each clay robot costs (\d+) ore. Each obsidian robot costs (\d+) ore and (\d+) clay. Each geode robot costs (\d+) ore and (\d+) obsidian.";
 
 #[derive(new, Debug, Copy, Clone)]
-pub struct Price {
+pub struct Money {
     pub ore: u32,
     pub clay: u32,
     pub obsidian: u32,
@@ -17,10 +17,10 @@ pub struct Price {
 #[derive(new, Debug, Copy, Clone)]
 pub struct Blueprint {
     pub number: u32,
-    pub ore_cost: Price,
-    pub clay_cost: Price,
-    pub obsidian_cost: Price,
-    pub geode_cost: Price,
+    pub ore_cost: Money,
+    pub clay_cost: Money,
+    pub obsidian_cost: Money,
+    pub geode_cost: Money,
 }
 
 
@@ -40,10 +40,10 @@ pub fn parse(line: &str, re: &Regex) -> Blueprint {
 
     Blueprint::new(
         parse_str_to_num(blueprint_num),
-        Price::new(parse_str_to_num(ore_ore), 0, 0),
-        Price::new(parse_str_to_num(clay_ore), 0, 0),
-        Price::new(parse_str_to_num(obs_ore), parse_str_to_num(obs_clay), 0),
-        Price::new(parse_str_to_num(geo_ore), 0, parse_str_to_num(geo_obs)),
+        Money::new(parse_str_to_num(ore_ore), 0, 0),
+        Money::new(parse_str_to_num(clay_ore), 0, 0),
+        Money::new(parse_str_to_num(obs_ore), parse_str_to_num(obs_clay), 0),
+        Money::new(parse_str_to_num(geo_ore), 0, parse_str_to_num(geo_obs)),
     )
 
 }
