@@ -92,6 +92,7 @@ name = "day19"
 version = "0.1.0"
 dependencies = [
  "derive-new 0.6.0",
+ "par-dfs",
  "regex",
 ]
 
@@ -334,6 +335,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39e3200413f237f41ab11ad6d161bc7239c84dcb631773ccd7de3dfe4b5c267c"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "par-dfs"
+version = "0.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c8e5f0ab9fac988a4956d216e317bf335fa36ceb0b62b6c020a8e223d5fb3d7"
+dependencies = [
+ "thiserror",
 ]
 
 [[package]]

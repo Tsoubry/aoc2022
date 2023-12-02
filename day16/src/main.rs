@@ -54,11 +54,8 @@ fn move_to_next(mut valve: ValvePath) -> (ValvePath, isize) {
 }
 
 fn heuristic(current_path: &ValvePath, map: &HashMap<String, Valve>) -> isize {
-
     -1653
 }
-
-
 
 fn successors(valve_path: &ValvePath, map: &HashMap<String, Valve>) -> Vec<(ValvePath, isize)> {
     let tunnel_iter = valve_path.tunnels.iter().map(|tunnel| {
@@ -100,7 +97,6 @@ fn answer_part1(data: HashMap<String, Valve>) -> isize {
     // let best_cost: isize = result.0.into_iter().map(|res| res.1.1).min().unwrap();
 
     result.unwrap().1
-
 
     // best_cost
 }

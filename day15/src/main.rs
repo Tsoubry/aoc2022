@@ -38,16 +38,11 @@ fn answer_part1(data: Vec<(Coordinate, Coordinate)>, y_level: isize) -> usize {
 }
 
 fn answer_part2(data: Vec<(Coordinate, Coordinate)>, x_max: usize, y_max: usize) -> usize {
-
     // sensors
 
     // start with range of sensors
 
-    for (sensor, beacon) in data {
-        
-    }
-
-
+    for (sensor, beacon) in data {}
 
     let x_min = 0;
     let y_min = 0;
@@ -61,7 +56,6 @@ fn answer_part2(data: Vec<(Coordinate, Coordinate)>, x_max: usize, y_max: usize)
     let distress_beacon_y = 10;
 
     distress_beacon_x * 4_000_000 + distress_beacon_y
-
 }
 
 fn main() {

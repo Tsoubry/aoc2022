@@ -5,14 +5,14 @@ pub type AnswerDtype = u32;
 
 const PATTERN: &str = r"Blueprint (\d+): Each ore robot costs (\d+) ore. Each clay robot costs (\d+) ore. Each obsidian robot costs (\d+) ore and (\d+) clay. Each geode robot costs (\d+) ore and (\d+) obsidian.";
 
-#[derive(new, Debug, Copy, Clone)]
+#[derive(new, Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Money {
     pub ore: u32,
     pub clay: u32,
     pub obsidian: u32,
 }
 
-#[derive(new, Debug, Copy, Clone)]
+#[derive(new, Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Blueprint {
     pub number: u32,
     pub ore_cost: Money,

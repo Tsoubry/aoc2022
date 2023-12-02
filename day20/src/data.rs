@@ -1,7 +1,8 @@
 pub fn import_data(data: &str) -> Vec<isize> {
-    data.lines().filter_map(|line| line.parse::<isize>().ok()).collect()
+    data.lines()
+        .filter_map(|line| line.parse::<isize>().ok())
+        .collect()
 }
-
 
 pub const TEST_DATA: &str = r#"1
 2
