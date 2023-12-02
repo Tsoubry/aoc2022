@@ -1,0 +1,8 @@
+[alias] # command aliases
+b = "build"
+c = "check"
+t = "test"
+tn = "test -- --nocapture"
+r = "run"
+rr = "run --release"
+ben = "bench -q --all-features -p benchmarks"
